@@ -2,11 +2,26 @@
   "properties": {
     "role": {
       "type": "string",
-      "description": "The role of the user in the app",
+      "description": "Papel do usu\u00e1rio no app: motorista (acesso \u00e0s fun\u00e7\u00f5es de motorista) ou admin (acesso total)",
       "enum": [
-        "admin",
-        "user"
-      ]
+        "motorista",
+        "admin"
+      ],
+      "default": "motorista"
+    },
+    "codigo_bordo": {
+      "type": "string",
+      "title": "C\u00f3digo do Computador de Bordo",
+      "description": "Tecla num\u00e9rica que o motorista pressiona no ESP32 para se identificar"
+    },
+    "telefone": {
+      "type": "string",
+      "title": "Telefone"
+    },
+    "foto_url": {
+      "type": "string",
+      "format": "uri",
+      "title": "Foto"
     }
   },
   "required": [

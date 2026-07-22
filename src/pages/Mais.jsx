@@ -2,21 +2,21 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useFrotaData } from "@/hooks/useFrotaData";
 import { isGestorOuAdmin } from "@/hooks/useFrotaData";
-import { ClipboardList, Car, Wrench, FileText, Settings, Receipt, ChevronRight, User, LogOut, Cpu } from "lucide-react";
+import { ClipboardList, Car, Wrench, Settings, Receipt, ChevronRight, User, LogOut, UserCircle } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 
 export default function Mais() {
-  const { motorista } = useFrotaData();
-  const { user, logout } = useAuth();
-  const podeGerenciar = isGestorOuAdmin(motorista);
-  const ehAdmin = motorista?.permissao === "administrador";
+  const { user, motorista } = useFrotaData();
+  const { logout } = useAuth();
+  const ehAdmin = user?.role === "admin" || motorista?.permissao === "administrador";
 
   const menuItems = [
+    { path: "/perfil", label: "Meu Perfil", icon: UserCircle, desc: "Editar foto, nome e telefone", show: true },
     { path: "/registros", label: "Registros de Uso", icon: ClipboardList, desc: "Histórico de quem usou cada veículo", show: true },
-    { path: "/multas", label: "Multas", icon: Receipt, desc: "Registrar e gerenciar multas", show: podeGerenciar || motorista?.permissao === "administrativo" },
-    { path: "/manutencoes", label: "Manutenções", icon: Wrench, desc: "Manutenções programadas e realizadas", show: podeGerenciar },
-    { path: "/frota", label: "Frota", icon: Car, desc: "Ficha completa dos veículos", show: podeGerenciar },
-    { path: "/admin", label: "Painel Administrativo", icon: Settings, desc: "Veículos, motoristas, checklist, ESP32", show: ehAdmin }
+    { path: "/multas", label: "Multas", icon: Receipt, desc: "Registrar e gerenciar multas", show: ehAdmin },
+    { path: "/manutencoes", label: "Manutenções", icon: Wrench, desc: "Manutenções programadas e realizadas", show: ehAdmin },
+    { path: "/frota", label: "Frota", icon: Car, desc: "Ficha completa dos veículos", show: ehAdmin },
+    { path: "/admin", label: "Painel Administrativo", icon: Settings, desc: "Veículos, usuários, checklist, ESP32", show: ehAdmin }
   ].filter((i) => i.show);
 
   return (
@@ -27,8 +27,8 @@ export default function Mais() {
             <User className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">{motorista?.nome || user?.full_name || "Usuário"}</h1>
-            <p className="text-white/70 text-xs capitalize">{motorista?.permissao || "—"} • Terra Ideal</p>
+            <h1 className="text-xl font-bold">{user?.full_name || "Usuário"}</h1>
+            <p className="text-white/70 text-xs capitalize">{user?.role === "admin" ? "Administrador" : "Motorista"} • Terra Ideal</p>
           </div>
         </div>
       </div>

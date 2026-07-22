@@ -83,9 +83,7 @@ export const STATUS_MULTA = {
 
 export const PERMISSOES = {
   motorista: "Motorista",
-  gestor: "Gestor",
-  administrativo: "Administrativo",
-  administrador: "Administrador"
+  admin: "Administrador"
 };
 
 export function formatarMoeda(valor) {

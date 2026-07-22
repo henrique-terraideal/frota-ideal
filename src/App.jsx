@@ -18,6 +18,7 @@ import VeiculoDetalhe from '@/pages/VeiculoDetalhe';
 import Admin from '@/pages/Admin';
 import Mais from '@/pages/Mais';
 import OnboardingBordo from '@/pages/OnboardingBordo';
+import Perfil from '@/pages/Perfil';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -61,6 +62,7 @@ const AuthenticatedApp = () => {
         <Route path="/frota" element={<Frota />} />
         <Route path="/frota/:id" element={<VeiculoDetalhe />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/perfil" element={<Perfil />} />
         <Route path="/mais" element={<Mais />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />

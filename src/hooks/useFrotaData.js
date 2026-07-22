@@ -1,28 +1,20 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 
-// Hook que carrega o motorista atual (vinculado ao usuário logado) e a lista de veículos
+// Hook que carrega o usuário atual e a lista de veículos
 export function useFrotaData() {
-  const [motorista, setMotorista] = useState(null);
+  const [user, setUser] = useState(null);
   const [veiculos, setVeiculos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [user, motoristasData, veiculosData] = await Promise.all([
+        const [me, veiculosData] = await Promise.all([
           base44.auth.me(),
-          base44.entities.Motorista.list(),
           base44.entities.Veiculo.list()
         ]);
-        const meuMotorista = motoristasData.find((m) => m.user_id === user.id) || null;
-        if (meuMotorista) {
-          setMotorista(meuMotorista);
-        } else {
-          // Sem registro de motorista: admin do Base44 vira administrador, demais viram motorista
-          const permissaoFallback = user.role === "admin" ? "administrador" : "motorista";
-          setMotorista({ nome: user.full_name, permissao: permissaoFallback, user_id: user.id, id: null });
-        }
+        setUser(me);
         setVeiculos(veiculosData);
       } catch (e) {
         console.error("Erro ao carregar dados da frota:", e);
@@ -33,18 +25,23 @@ export function useFrotaData() {
     loadData();
   }, []);
 
-  return { motorista, veiculos, loading, setMotorista, setVeiculos };
+  // Compat: mantém "motorista" como alias do user para não quebrar componentes que usam motorista.nome / motorista.id
+  const motorista = user ? {
+    id: user.id,
+    nome: user.full_name,
+    permissao: user.role === "admin" ? "administrador" : "motorista",
+    user_id: user.id
+  } : null;
+
+  return { user, motorista, veiculos, loading, setUser, setVeiculos };
 }
 
-export function podeAcessar(motorista, ...permissoes) {
-  if (!motorista) return false;
-  return permissoes.includes(motorista.permissao);
+export function isAdmin(user) {
+  return user?.role === "admin" || user?.permissao === "administrador";
 }
 
-export function isAdmin(motorista) {
-  return motorista?.permissao === "administrador";
-}
-
-export function isGestorOuAdmin(motorista) {
-  return motorista?.permissao === "gestor" || motorista?.permissao === "administrador";
+// Compat: aceita user ou motorista (objeto com permissao)
+export function isGestorOuAdmin(user) {
+  if (!user) return false;
+  return user.role === "admin" || user.permissao === "administrador" || user.permissao === "gestor";
 }

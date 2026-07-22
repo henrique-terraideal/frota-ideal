@@ -5,15 +5,16 @@ Deno.serve(async (req) => {
     // Endpoint PÚBLICO — o ESP32 faz GET para carregar a lista de motoristas
     const base44 = createClientFromRequest(req);
 
-    const motoristas = await base44.asServiceRole.entities.Motorista.filter({ ativo: true });
+    // Lista usuários que possuem código de bordo (todos os motoristas)
+    const usuarios = await base44.asServiceRole.entities.User.list();
 
     // Ordena por codigo_bordo e retorna no formato esperado pelo dispositivo
-    const lista = motoristas
-      .filter((m) => m.codigo_bordo)
+    const lista = usuarios
+      .filter((u) => u.codigo_bordo)
       .sort((a, b) => String(a.codigo_bordo).localeCompare(String(b.codigo_bordo), "pt-BR", { numeric: true }))
-      .map((m) => ({
-        codigo: m.codigo_bordo,
-        nome: m.nome
+      .map((u) => ({
+        codigo: u.codigo_bordo,
+        nome: u.full_name || u.email
       }));
 
     return Response.json({ motoristas: lista });
