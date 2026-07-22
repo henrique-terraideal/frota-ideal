@@ -25,43 +25,43 @@ Deno.serve(async (req) => {
       // Sem auth = provavelmente chamada do workflow (service role)
     }
 
-    const veiculos = await base44.asServiceRole.entities.Veiculo.filter({ status: "ativo" });
+    const ativos = await base44.asServiceRole.entities.Ativo.filter({ status: "ativo" });
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
     const diaSemana = hoje.getDay(); // 0 = domingo, 1 = segunda
     const criadas = [];
 
-    for (const veiculo of veiculos) {
-      // 1. Pendência de lavagem toda segunda-feira (se não houver aberta)
+    for (const ativo of ativos) {
+      // 1. Pendência de limpeza toda segunda-feira (se não houver aberta)
       if (diaSemana === 1) {
-        const lavagensAbertas = await base44.asServiceRole.entities.Pendencia.filter({
-          veiculo_id: veiculo.id,
+        const limpezasAbertas = await base44.asServiceRole.entities.Pendencia.filter({
+          ativo_id: ativo.id,
           tipo: "manutencao_programada",
           status: "aberto"
         });
-        const jaTemLavagem = lavagensAbertas.some((p) =>
-          p.titulo.toLowerCase().includes("lavagem") || p.descricao?.toLowerCase().includes("lavagem")
+        const jaTemLimpeza = limpezasAbertas.some((p) =>
+          p.titulo.toLowerCase().includes("lavagem") || p.titulo.toLowerCase().includes("limpeza") || p.descricao?.toLowerCase().includes("lavagem") || p.descricao?.toLowerCase().includes("limpeza")
         );
-        if (!jaTemLavagem) {
+        if (!jaTemLimpeza) {
           const pend = await base44.asServiceRole.entities.Pendencia.create({
-            titulo: `Lavagem do veículo — ${veiculo.nome}`,
+            titulo: `Limpeza do ativo — ${ativo.nome}`,
             tipo: "manutencao_programada",
-            veiculo_id: veiculo.id,
-            veiculo_nome: veiculo.nome,
+            ativo_id: ativo.id,
+            ativo_nome: ativo.nome,
             status: "aberto",
-            descricao: "Lavagem semanal programada para toda segunda-feira.",
+            descricao: "Limpeza semanal programada para toda segunda-feira.",
             prioridade: "baixa"
           });
           criadas.push(pend.titulo);
         }
       }
 
-      // 2. Planos de manutenção preventiva (por km e/ou tempo)
-      const planos = await base44.asServiceRole.entities.PlanoManutencao.filter({ veiculo_id: veiculo.id, ativo: true });
-      // "Tempo de uso" atual: km/horas/ciclos (odômetro) ou idade em dias (data_aquisicao)
-      let usoAtual = veiculo.odometro_atual || 0;
-      if ((veiculo.unidade_tempo_uso || "km") === "idade_dias" && veiculo.data_aquisicao) {
-        const diffMs = hoje.getTime() - new Date(veiculo.data_aquisicao).getTime();
+      // 2. Planos de manutenção preventiva (por uso e/ou tempo)
+      const planos = await base44.asServiceRole.entities.PlanoManutencao.filter({ ativo_id: ativo.id, ativo: true });
+      // "Tempo de uso" atual: km/horas/ciclos (leitura) ou idade em dias (data_aquisicao)
+      let usoAtual = ativo.odometro_atual || 0;
+      if ((ativo.unidade_tempo_uso || "km") === "idade_dias" && ativo.data_aquisicao) {
+        const diffMs = hoje.getTime() - new Date(ativo.data_aquisicao).getTime();
         usoAtual = Math.max(0, Math.floor(diffMs / 86400000));
       }
 
@@ -69,12 +69,12 @@ Deno.serve(async (req) => {
         let deveGerar = false;
         let motivo = "";
 
-        // Gatilho por km
-        if (plano.gatilho_km) {
-          const ultimaKm = plano.ultima_execucao_odometro || 0;
-          if (usoAtual >= ultimaKm + plano.gatilho_km) {
+        // Gatilho por uso
+        if (plano.gatilho_uso) {
+          const ultimaLeitura = plano.ultima_execucao_leitura || 0;
+          if (usoAtual >= ultimaLeitura + plano.gatilho_uso) {
             deveGerar = true;
-            motivo = `Tempo de uso atual ${usoAtual} atingiu o gatilho de ${plano.gatilho_km} (última execução em ${ultimaKm}).`;
+            motivo = `Tempo de uso atual ${usoAtual} atingiu o gatilho de ${plano.gatilho_uso} (última execução em ${ultimaLeitura}).`;
           }
         }
 
@@ -93,7 +93,6 @@ Deno.serve(async (req) => {
                 motivo = `Prazo de ${plano.gatilho_tempo_valor} ${plano.gatilho_tempo_unidade} atingido (última execução em ${formatarDataBR(plano.ultima_execucao_data)}).`;
               }
             } else {
-              // Sem data de última execução — considera vencido
               deveGerar = true;
               motivo = `Plano sem registro de execução anterior. Realize a primeira execução e registre.`;
             }
@@ -103,21 +102,21 @@ Deno.serve(async (req) => {
         if (deveGerar) {
           // Idempotência: não cria se já existe pendência aberta para este plano
           const existentes = await base44.asServiceRole.entities.Pendencia.filter({
-            veiculo_id: veiculo.id,
+            ativo_id: ativo.id,
             tipo: "manutencao_programada",
             status: "aberto"
           });
           const jaExiste = existentes.some((p) => p.referencia_id === plano.id);
           if (!jaExiste) {
             const pend = await base44.asServiceRole.entities.Pendencia.create({
-              titulo: `${plano.titulo} — ${veiculo.nome}`,
+              titulo: `${plano.titulo} — ${ativo.nome}`,
               tipo: "manutencao_programada",
-              veiculo_id: veiculo.id,
-              veiculo_nome: veiculo.nome,
+              ativo_id: ativo.id,
+              ativo_nome: ativo.nome,
               status: "aberto",
               descricao: `${motivo}${plano.descricao ? ` ${plano.descricao}` : ""}`,
               referencia_id: plano.id,
-              prioridade: plano.gatilho_km && usoAtual >= (plano.ultima_execucao_odometro || 0) + plano.gatilho_km ? "alta" : "media"
+              prioridade: plano.gatilho_uso && usoAtual >= (plano.ultima_execucao_leitura || 0) + plano.gatilho_uso ? "alta" : "media"
             });
             criadas.push(pend.titulo);
           }
@@ -125,23 +124,23 @@ Deno.serve(async (req) => {
       }
 
       // 3. Licenciamento a vencer em 30 dias
-      if (veiculo.data_licenciamento) {
-        const dias = diasAteVencimento(veiculo.data_licenciamento);
+      if (ativo.data_licenciamento) {
+        const dias = diasAteVencimento(ativo.data_licenciamento);
         if (dias !== null && dias >= 0 && dias <= 30) {
           const licExistentes = await base44.asServiceRole.entities.Pendencia.filter({
-            veiculo_id: veiculo.id,
+            ativo_id: ativo.id,
             tipo: "licenciamento",
             status: "aberto"
           });
           if (licExistentes.length === 0) {
             const pend = await base44.asServiceRole.entities.Pendencia.create({
-              titulo: `Licenciamento a vencer — ${veiculo.nome}`,
+              titulo: `Licenciamento a vencer — ${ativo.nome}`,
               tipo: "licenciamento",
-              veiculo_id: veiculo.id,
-              veiculo_nome: veiculo.nome,
+              ativo_id: ativo.id,
+              ativo_nome: ativo.nome,
               status: "aberto",
-              descricao: `Vencimento do licenciamento em ${formatarDataBR(veiculo.data_licenciamento)} (${dias} dias). Renove o licenciamento.`,
-              data_limite: veiculo.data_licenciamento,
+              descricao: `Vencimento do licenciamento em ${formatarDataBR(ativo.data_licenciamento)} (${dias} dias). Renove o licenciamento.`,
+              data_limite: ativo.data_licenciamento,
               prioridade: dias <= 7 ? "alta" : "media"
             });
             criadas.push(pend.titulo);
@@ -150,23 +149,23 @@ Deno.serve(async (req) => {
       }
 
       // 4. IPVA a vencer em 30 dias
-      if (veiculo.data_ipva) {
-        const dias = diasAteVencimento(veiculo.data_ipva);
+      if (ativo.data_ipva) {
+        const dias = diasAteVencimento(ativo.data_ipva);
         if (dias !== null && dias >= 0 && dias <= 30) {
           const ipvaExistentes = await base44.asServiceRole.entities.Pendencia.filter({
-            veiculo_id: veiculo.id,
+            ativo_id: ativo.id,
             tipo: "ipva",
             status: "aberto"
           });
           if (ipvaExistentes.length === 0) {
             const pend = await base44.asServiceRole.entities.Pendencia.create({
-              titulo: `IPVA a vencer — ${veiculo.nome}`,
+              titulo: `IPVA a vencer — ${ativo.nome}`,
               tipo: "ipva",
-              veiculo_id: veiculo.id,
-              veiculo_nome: veiculo.nome,
+              ativo_id: ativo.id,
+              ativo_nome: ativo.nome,
               status: "aberto",
-              descricao: `Vencimento do IPVA em ${formatarDataBR(veiculo.data_ipva)} (${dias} dias). Realize o pagamento.`,
-              data_limite: veiculo.data_ipva,
+              descricao: `Vencimento do IPVA em ${formatarDataBR(ativo.data_ipva)} (${dias} dias). Realize o pagamento.`,
+              data_limite: ativo.data_ipva,
               prioridade: dias <= 7 ? "alta" : "media"
             });
             criadas.push(pend.titulo);
@@ -177,7 +176,8 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
-      veiculos_verificados: veiculos.length,
+      veiculos_verificados: ativos.length,
+      ativos_verificados: ativos.length,
       pendencias_criadas: criadas,
       total_criadas: criadas.length
     });

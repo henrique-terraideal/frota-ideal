@@ -12,11 +12,11 @@ export default function Mais() {
 
   const menuItems = [
     { path: "/perfil", label: "Meu Perfil", icon: UserCircle, desc: "Editar foto, nome e telefone", show: true },
-    { path: "/registros", label: "Registros de Uso", icon: ClipboardList, desc: "Histórico de quem usou cada veículo", show: true },
+    { path: "/registros", label: "Registros de Uso", icon: ClipboardList, desc: "Histórico de quem usou cada ativo", show: true },
     { path: "/multas", label: "Multas", icon: Receipt, desc: "Registrar e gerenciar multas", show: ehAdmin },
     { path: "/manutencoes", label: "Manutenções", icon: Wrench, desc: "Manutenções programadas e realizadas", show: ehAdmin },
-    { path: "/frota", label: "Frota", icon: Car, desc: "Ficha completa dos veículos", show: ehAdmin },
-    { path: "/admin", label: "Painel Administrativo", icon: Settings, desc: "Veículos, usuários, checklist, ESP32", show: ehAdmin }
+    { path: "/frota", label: "Patrimônio", icon: Car, desc: "Ficha completa dos ativos", show: ehAdmin },
+    { path: "/admin", label: "Painel Administrativo", icon: Settings, desc: "Ativos, usuários, checklist, ESP32", show: ehAdmin }
   ].filter((i) => i.show);
 
   return (
@@ -28,7 +28,7 @@ export default function Mais() {
           </div>
           <div>
             <h1 className="text-xl font-bold">{user?.full_name || "Usuário"}</h1>
-            <p className="text-white/70 text-xs capitalize">{user?.role === "admin" ? "Administrador" : "Motorista"} • Terra Ideal</p>
+            <p className="text-white/70 text-xs capitalize">{user?.role === "admin" ? "Administrador" : "Operador"} • Terra Ideal</p>
           </div>
         </div>
       </div>
@@ -60,7 +60,7 @@ export default function Mais() {
           </div>
         </button>
 
-        <p className="text-center text-xs text-muted-foreground mt-6 pb-4">Gestão de Frota • Terra Ideal v1.0</p>
+        <p className="text-center text-xs text-muted-foreground mt-6 pb-4">Gestão de Patrimônio • Terra Ideal v1.0</p>
       </div>
     </div>
   );

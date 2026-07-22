@@ -7,7 +7,7 @@ const navItems = [
   { path: "/", label: "Início", icon: Home },
   { path: "/checklist", label: "Checklist", icon: ClipboardCheck },
   { path: "/kanban", label: "Pendências", icon: LayoutGrid },
-  { path: "/frota", label: "Frota", icon: Car },
+  { path: "/frota", label: "Patrimônio", icon: Car },
   { path: "/mais", label: "Mais", icon: MenuIcon }
 ];
 

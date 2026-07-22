@@ -54,7 +54,7 @@ export default function AdminEsp32() {
     try {
       const disp = dispositivos.find((d) => d.id === dispositivoSelecionado);
       const contexto = disp
-        ? `[CONFIGURAÇÃO AUTOMÁTICA]\nDEVICE_ID: ${disp.device_id}\nBASE_URL: ${window.location.origin}\nVEICULO_NOME: ${disp.veiculo_nome || disp.nome || ""}\nGere o firmware para o dispositivo ${disp.device_id} vinculado ao veículo ${disp.veiculo_nome || ""}. Use BASE_URL = ${window.location.origin}. Essas constantes já devem vir preenchidas no código gerado no topo do arquivo. Adicione o comentário: // Configurado automaticamente pelo painel admin em ${new Date().toLocaleDateString("pt-BR")}.\n\n---\n\n`
+        ? `[CONFIGURAÇÃO AUTOMÁTICA]\nDEVICE_ID: ${disp.device_id}\nBASE_URL: ${window.location.origin}\nATIVO_NOME: ${disp.ativo_nome || disp.nome || ""}\nGere o firmware para o dispositivo ${disp.device_id} vinculado ao ativo ${disp.ativo_nome || ""}. Use BASE_URL = ${window.location.origin}. Essas constantes já devem vir preenchidas no código gerado no topo do arquivo. Adicione o comentário: // Configurado automaticamente pelo painel admin em ${new Date().toLocaleDateString("pt-BR")}.\n\n---\n\n`
         : "";
       const conv = await base44.agents.getConversation(conversa.id);
       await base44.agents.addMessage(conv, { role: "user", content: contexto + input.trim() });
@@ -88,7 +88,7 @@ export default function AdminEsp32() {
         <label className="text-xs font-semibold text-muted-foreground">Para qual dispositivo gerar o firmware?</label>
         <select value={dispositivoSelecionado} onChange={(e) => setDispositivoSelecionado(e.target.value)} className="w-full border border-border rounded-xl px-3 py-2 text-sm mt-1 focus:border-primary outline-none">
           <option value="">Selecione um dispositivo...</option>
-          {dispositivos.map((d) => <option key={d.id} value={d.id}>{d.device_id} — {d.veiculo_nome || d.nome || "Sem veículo"}</option>)}
+          {dispositivos.map((d) => <option key={d.id} value={d.id}>{d.device_id} — {d.ativo_nome || d.nome || "Sem ativo"}</option>)}
         </select>
         {dispositivoSelecionado && (
           <p className="text-[10px] text-muted-foreground mt-1.5">

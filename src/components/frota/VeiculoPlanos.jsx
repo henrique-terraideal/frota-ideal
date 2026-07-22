@@ -14,7 +14,7 @@ export default function VeiculoPlanos({ veiculoId, veiculo, odometroAtual }) {
   async function carregar() {
     setLoading(true);
     try {
-      const data = await base44.entities.PlanoManutencao.filter({ veiculo_id: veiculoId });
+      const data = await base44.entities.PlanoManutencao.filter({ ativo_id: veiculoId });
       setPlanos(data);
     } catch (e) { console.error(e); } finally { setLoading(false); }
   }
@@ -28,7 +28,7 @@ export default function VeiculoPlanos({ veiculoId, veiculo, odometroAtual }) {
 
   function descricaoRecorrencia(plano) {
     const partes = [];
-    if (plano.gatilho_km) partes.push(`a cada ${plano.gatilho_km.toLocaleString("pt-BR")} ${info.label}`);
+    if (plano.gatilho_uso) partes.push(`a cada ${plano.gatilho_uso.toLocaleString("pt-BR")} ${info.label}`);
     if (plano.gatilho_tempo_valor && plano.gatilho_tempo_unidade) {
       partes.push(`a cada ${plano.gatilho_tempo_valor} ${UNIDADES_TEMPO[plano.gatilho_tempo_unidade] || plano.gatilho_tempo_unidade}`);
     }
@@ -43,7 +43,7 @@ export default function VeiculoPlanos({ veiculoId, veiculo, odometroAtual }) {
 
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
         <p className="text-xs text-blue-700">
-          💡 Os planos geram pendências automáticas no Kanban quando o veículo atinge o {info.label} ou o prazo definido.
+          💡 Os planos geram pendências automáticas no Kanban quando o ativo atinge o {info.label} ou o prazo definido.
         </p>
       </div>
 
@@ -71,7 +71,7 @@ export default function VeiculoPlanos({ veiculoId, veiculo, odometroAtual }) {
             <p className="text-xs text-primary font-medium mt-1">{descricaoRecorrencia(p)}</p>
             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1.5">
               {p.ultima_execucao_data && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Última: {formatarDataBR(p.ultima_execucao_data)}</span>}
-              {p.gatilho_km ? <span className="flex items-center gap-1"><Gauge className="w-3 h-3" /> Últ.: {(p.ultima_execucao_odometro || 0).toLocaleString("pt-BR")} {info.label}</span> : null}
+              {p.gatilho_uso ? <span className="flex items-center gap-1"><Gauge className="w-3 h-3" /> Últ.: {(p.ultima_execucao_leitura || 0).toLocaleString("pt-BR")} {info.label}</span> : null}
             </div>
           </div>
         ))
@@ -92,10 +92,10 @@ function FormPlano({ plano, veiculoId, veiculo, odometroAtual, onClose, onSalvo 
     titulo: plano.titulo || "",
     tipo_manutencao: plano.tipo_manutencao || "outro",
     ativo: plano.ativo !== false,
-    gatilho_km: plano.gatilho_km || "",
+    gatilho_uso: plano.gatilho_uso || "",
     gatilho_tempo_valor: plano.gatilho_tempo_valor || "",
     gatilho_tempo_unidade: plano.gatilho_tempo_unidade || "meses",
-    ultima_execucao_odometro: plano.ultima_execucao_odometro ?? "",
+    ultima_execucao_leitura: plano.ultima_execucao_leitura ?? "",
     ultima_execucao_data: plano.ultima_execucao_data || "",
     descricao: plano.descricao || ""
   });
@@ -106,15 +106,15 @@ function FormPlano({ plano, veiculoId, veiculo, odometroAtual, onClose, onSalvo 
     setSalvando(true);
     try {
       const dados = {
-        veiculo_id: veiculoId,
-        veiculo_nome: veiculo?.nome || "",
+        ativo_id: veiculoId,
+        ativo_nome: veiculo?.nome || "",
         titulo: form.titulo.trim(),
         tipo_manutencao: form.tipo_manutencao,
         ativo: form.ativo,
-        gatilho_km: !ehIdade && form.gatilho_km ? Number(form.gatilho_km) : null,
+        gatilho_uso: !ehIdade && form.gatilho_uso ? Number(form.gatilho_uso) : null,
         gatilho_tempo_valor: form.gatilho_tempo_valor ? Number(form.gatilho_tempo_valor) : null,
         gatilho_tempo_unidade: form.gatilho_tempo_valor ? form.gatilho_tempo_unidade : null,
-        ultima_execucao_odometro: form.ultima_execucao_odometro !== "" ? Number(form.ultima_execucao_odometro) : 0,
+        ultima_execucao_leitura: form.ultima_execucao_leitura !== "" ? Number(form.ultima_execucao_leitura) : 0,
         ultima_execucao_data: form.ultima_execucao_data || null,
         descricao: form.descricao || null
       };
@@ -155,7 +155,7 @@ function FormPlano({ plano, veiculoId, veiculo, odometroAtual, onClose, onSalvo 
             ) : (
               <div>
                 <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1"><Gauge className="w-3 h-3" /> A cada ({info.label})</label>
-                <input type="number" value={form.gatilho_km} onChange={(e) => setForm({ ...form, gatilho_km: e.target.value })} placeholder={`Ex: ${info.label === "km" ? "10000" : "250"}`} className="w-full border border-border rounded-xl px-3 py-2 text-sm mt-1 focus:border-primary outline-none" />
+                <input type="number" value={form.gatilho_uso} onChange={(e) => setForm({ ...form, gatilho_uso: e.target.value })} placeholder={`Ex: ${info.label === "km" ? "10000" : "250"}`} className="w-full border border-border rounded-xl px-3 py-2 text-sm mt-1 focus:border-primary outline-none" />
               </div>
             )}
             <div className="grid grid-cols-2 gap-2">
@@ -182,7 +182,7 @@ function FormPlano({ plano, veiculoId, veiculo, odometroAtual, onClose, onSalvo 
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground">{info.campo} ({info.label})</label>
-                  <input type="number" value={form.ultima_execucao_odometro} onChange={(e) => setForm({ ...form, ultima_execucao_odometro: e.target.value })} placeholder={String(odometroAtual || 0)} className="w-full border border-border rounded-xl px-3 py-2 text-sm mt-1 focus:border-primary outline-none" />
+                  <input type="number" value={form.ultima_execucao_leitura} onChange={(e) => setForm({ ...form, ultima_execucao_leitura: e.target.value })} placeholder={String(odometroAtual || 0)} className="w-full border border-border rounded-xl px-3 py-2 text-sm mt-1 focus:border-primary outline-none" />
                 </div>
               </div>
             </div>

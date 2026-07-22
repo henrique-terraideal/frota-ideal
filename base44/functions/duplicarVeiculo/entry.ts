@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
       // sem auth
     }
     if (!isAdmin) {
-      return Response.json({ success: false, error: "Apenas administradores podem duplicar veículos" }, { status: 403 });
+      return Response.json({ success: false, error: "Apenas administradores podem duplicar ativos" }, { status: 403 });
     }
 
     const body = await req.json();
@@ -26,14 +26,14 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: "novo_nome é obrigatório" }, { status: 400 });
     }
 
-    // 1. Carrega o veículo de origem
-    const origem = await base44.entities.Veiculo.get(veiculo_origem_id);
+    // 1. Carrega o ativo de origem
+    const origem = await base44.entities.Ativo.get(veiculo_origem_id);
     if (!origem) {
-      return Response.json({ success: false, error: "Veículo de origem não encontrado" }, { status: 404 });
+      return Response.json({ success: false, error: "Ativo de origem não encontrado" }, { status: 404 });
     }
 
-    // 2. Cria o novo veículo copiando os dados básicos (odômetro zerado)
-    const novoVeiculo = await base44.entities.Veiculo.create({
+    // 2. Cria o novo ativo copiando os dados básicos (leitura de uso zerada)
+    const novoAtivo = await base44.entities.Ativo.create({
       nome: novo_nome.trim(),
       tipo: origem.tipo,
       placa: nova_placa || "",
@@ -53,13 +53,13 @@ Deno.serve(async (req) => {
     });
 
     // 3. Copia o checklist
-    const checklistOrigem = await base44.entities.ChecklistItem.filter({ veiculo_id: veiculo_origem_id });
+    const checklistOrigem = await base44.entities.ChecklistItem.filter({ ativo_id: veiculo_origem_id });
     if (checklistOrigem.length > 0) {
       await base44.entities.ChecklistItem.bulkCreate(
         checklistOrigem
           .sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
           .map((item) => ({
-            veiculo_id: novoVeiculo.id,
+            ativo_id: novoAtivo.id,
             pergunta: item.pergunta,
             ativo: item.ativo,
             ordem: item.ordem || 1,
@@ -69,19 +69,19 @@ Deno.serve(async (req) => {
     }
 
     // 4. Copia os planos de manutenção preventiva
-    const planosOrigem = await base44.entities.PlanoManutencao.filter({ veiculo_id: veiculo_origem_id });
+    const planosOrigem = await base44.entities.PlanoManutencao.filter({ ativo_id: veiculo_origem_id });
     if (planosOrigem.length > 0) {
       await base44.entities.PlanoManutencao.bulkCreate(
         planosOrigem.map((plano) => ({
-          veiculo_id: novoVeiculo.id,
-          veiculo_nome: novoVeiculo.nome,
+          ativo_id: novoAtivo.id,
+          ativo_nome: novoAtivo.nome,
           titulo: plano.titulo,
           tipo_manutencao: plano.tipo_manutencao,
           ativo: plano.ativo,
-          gatilho_km: plano.gatilho_km || null,
+          gatilho_uso: plano.gatilho_uso || null,
           gatilho_tempo_valor: plano.gatilho_tempo_valor || null,
           gatilho_tempo_unidade: plano.gatilho_tempo_unidade || null,
-          ultima_execucao_odometro: 0,
+          ultima_execucao_leitura: 0,
           ultima_execucao_data: null,
           descricao: plano.descricao || null
         }))
@@ -90,8 +90,10 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
-      novo_veiculo_id: novoVeiculo.id,
-      novo_veiculo_nome: novoVeiculo.nome,
+      novo_veiculo_id: novoAtivo.id,
+      novo_veiculo_nome: novoAtivo.nome,
+      novo_ativo_id: novoAtivo.id,
+      novo_ativo_nome: novoAtivo.nome,
       checklist_copiado: checklistOrigem.length,
       planos_copiados: planosOrigem.length
     });

@@ -2,13 +2,13 @@
   "name": "PlanoManutencao",
   "type": "object",
   "properties": {
-    "veiculo_id": {
+    "ativo_id": {
       "type": "string",
-      "title": "Ve\u00edculo"
+      "title": "Ativo"
     },
-    "veiculo_nome": {
+    "ativo_nome": {
       "type": "string",
-      "title": "Nome do Ve\u00edculo"
+      "title": "Nome do Ativo"
     },
     "titulo": {
       "type": "string",
@@ -33,10 +33,10 @@
       "title": "Ativo",
       "default": true
     },
-    "gatilho_km": {
+    "gatilho_uso": {
       "type": "number",
-      "title": "A cada (km)",
-      "description": "Repetir a cada X quil\u00f4metros rodados. Deixe vazio se n\u00e3o for por km."
+      "title": "A cada (unidade de uso)",
+      "description": "Repetir a cada X unidades de uso (km, horas ou ciclos). Deixe vazio se n\u00e3o for por uso."
     },
     "gatilho_tempo_valor": {
       "type": "number",
@@ -53,9 +53,9 @@
       ],
       "title": "Unidade de tempo"
     },
-    "ultima_execucao_odometro": {
+    "ultima_execucao_leitura": {
       "type": "number",
-      "title": "Od\u00f4metro da \u00faltima execu\u00e7\u00e3o",
+      "title": "Leitura de Uso na \u00daltima Execu\u00e7\u00e3o",
       "default": 0
     },
     "ultima_execucao_data": {
@@ -69,7 +69,7 @@
     }
   },
   "required": [
-    "veiculo_id",
+    "ativo_id",
     "titulo"
   ]
 }

@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     const { foto_url, veiculo_id } = body;
 
     if (!foto_url || !veiculo_id) {
-      return Response.json({ error: 'Foto e veículo são obrigatórios' }, { status: 400 });
+      return Response.json({ error: 'Foto e ativo são obrigatórios' }, { status: 400 });
     }
 
     // Usa IA com visão para extrair dados da multa
@@ -35,8 +35,8 @@ Deno.serve(async (req) => {
       model: "gemini_3_flash"
     });
 
-    // Busca o veículo
-    const veiculo = await base44.asServiceRole.entities.Veiculo.get(veiculo_id);
+    // Busca o ativo
+    const ativo = await base44.asServiceRole.entities.Ativo.get(veiculo_id);
 
     // Combina data e hora da infração em ISO
     let dataInfracaoISO = new Date().toISOString();
@@ -47,26 +47,25 @@ Deno.serve(async (req) => {
       dataInfracaoISO = new Date(`${ano}-${mes}-${dia}T${h.padStart(2, "0")}:${m.padStart(2, "0")}:00-03:00`).toISOString();
     }
 
-    // Cruza data/hora da infração com registros de uso para identificar o motorista
-    let motoristaIdentificado = null;
-    let motoristaNome = "";
-    if (veiculo) {
-      const registros = await base44.asServiceRole.entities.RegistroUso.filter({ veiculo_id: veiculo_id });
-      // Busca o registro mais próximo da data/hora da infração (dentro de um intervalo de 2 horas)
+    // Cruza data/hora da infração com registros de uso para identificar o operador
+    let operadorIdentificado = null;
+    let operadorNome = "";
+    if (ativo) {
+      const registros = await base44.asServiceRole.entities.RegistroUso.filter({ ativo_id: veiculo_id });
       const dataInfracao = new Date(dataInfracaoISO);
       let melhorMatch = null;
       let menorDiff = Infinity;
       for (const reg of registros) {
         if (!reg.data_hora_inicio) continue;
         const diff = Math.abs(new Date(reg.data_hora_inicio).getTime() - dataInfracao.getTime());
-        if (diff < menorDiff && diff < 2 * 60 * 60 * 1000) { // 2 horas
+        if (diff < menorDiff && diff < 2 * 60 * 60 * 1000) {
           menorDiff = diff;
           melhorMatch = reg;
         }
       }
       if (melhorMatch) {
-        motoristaIdentificado = melhorMatch.motorista_id;
-        motoristaNome = melhorMatch.motorista_nome || "";
+        operadorIdentificado = melhorMatch.operador_id;
+        operadorNome = melhorMatch.operador_nome || "";
       }
     }
 
@@ -79,10 +78,10 @@ Deno.serve(async (req) => {
 
     // Cria a multa
     const multa = await base44.asServiceRole.entities.Multa.create({
-      veiculo_id: veiculo_id,
-      veiculo_nome: veiculo?.nome || "",
-      motorista_identificado_id: motoristaIdentificado || "",
-      motorista_identificado_nome: motoristaNome,
+      ativo_id: veiculo_id,
+      ativo_nome: ativo?.nome || "",
+      operador_identificado_id: operadorIdentificado || "",
+      operador_identificado_nome: operadorNome,
       data_infracao: dataInfracaoISO,
       local_infracao: resultado.local_infracao || "",
       descricao_infracao: resultado.descricao_infracao || "",
@@ -97,14 +96,14 @@ Deno.serve(async (req) => {
 
     // Cria pendência no Kanban
     await base44.asServiceRole.entities.Pendencia.create({
-      titulo: `Multa — ${veiculo?.nome || "Veículo"} — R$ ${(resultado.valor || 0).toFixed(2)}`,
+      titulo: `Multa — ${ativo?.nome || "Ativo"} — R$ ${(resultado.valor || 0).toFixed(2)}`,
       tipo: "multa",
-      veiculo_id: veiculo_id,
-      veiculo_nome: veiculo?.nome || "",
+      ativo_id: veiculo_id,
+      ativo_nome: ativo?.nome || "",
       status: "aberto",
-      responsavel_id: motoristaIdentificado || "",
-      responsavel_nome: motoristaNome,
-      descricao: `${resultado.descricao_infracao || "Infração"} em ${resultado.data_infracao || ""} às ${resultado.hora_infracao || ""}. Local: ${resultado.local_infracao || ""}. ${motoristaNome ? `Motorista identificado: ${motoristaNome}` : "Motorista não identificado"}.`,
+      responsavel_id: operadorIdentificado || "",
+      responsavel_nome: operadorNome,
+      descricao: `${resultado.descricao_infracao || "Infração"} em ${resultado.data_infracao || ""} às ${resultado.hora_infracao || ""}. Local: ${resultado.local_infracao || ""}. ${operadorNome ? `Operador identificado: ${operadorNome}` : "Operador não identificado"}.`,
       data_limite: dataVencimentoISO,
       referencia_id: multa.id,
       prioridade: "alta"
@@ -114,8 +113,10 @@ Deno.serve(async (req) => {
       success: true,
       multa_id: multa.id,
       dados_extraidos: resultado,
-      motorista_identificado: motoristaNome,
-      motorista_id: motoristaIdentificado
+      motorista_identificado: operadorNome,
+      operador_identificado: operadorNome,
+      motorista_id: operadorIdentificado,
+      operador_id: operadorIdentificado
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

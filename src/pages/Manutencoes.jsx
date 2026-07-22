@@ -91,7 +91,7 @@ function ManutencaoCard({ manutencao, onUpdate }) {
       <div className="flex items-start justify-between mb-2">
         <div>
           <p className="font-semibold text-sm">{TIPOS_MANUTENCAO[manutencao.tipo] || manutencao.tipo}</p>
-          <p className="text-xs text-muted-foreground">{manutencao.veiculo_nome}</p>
+          <p className="text-xs text-muted-foreground">{manutencao.ativo_nome}</p>
         </div>
         <span className={`text-xs px-2 py-1 rounded-full ${STATUS_MANUTENCAO[manutencao.status]?.cor || ""}`}>{STATUS_MANUTENCAO[manutencao.status]?.label || manutencao.status}</span>
       </div>
@@ -103,7 +103,7 @@ function ManutencaoCard({ manutencao, onUpdate }) {
           <div className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {formatarDataBR(manutencao.data_programada)}</div>
         ) : null}
         {manutencao.custo ? <div className="flex items-center gap-1"><DollarSign className="w-3 h-3" /> {formatarMoeda(manutencao.custo)}</div> : null}
-        {manutencao.odometro_na_manutencao ? <span>{manutencao.odometro_na_manutencao.toLocaleString("pt-BR")} km</span> : null}
+        {manutencao.leitura_uso_na_manutencao ? <span>{manutencao.leitura_uso_na_manutencao.toLocaleString("pt-BR")}</span> : null}
       </div>
       {manutencao.status === "programada" && (
         <button onClick={marcarRealizada} className="w-full mt-2 py-2 rounded-lg bg-green-50 text-green-700 text-xs font-semibold flex items-center justify-center gap-1">
@@ -129,12 +129,12 @@ function FormManutencao({ veiculos, onClose, onSalvo }) {
     try {
       const veiculo = veiculos.find((v) => v.id === veiculoId);
       await base44.entities.Manutencao.create({
-        veiculo_id: veiculoId,
-        veiculo_nome: veiculo?.nome || "",
+        ativo_id: veiculoId,
+        ativo_nome: veiculo?.nome || "",
         tipo,
         status: "realizada",
         data_realizada: new Date().toISOString().split("T")[0],
-        odometro_na_manutencao: parseInt(odometro) || veiculo?.odometro_atual || 0,
+        leitura_uso_na_manutencao: parseInt(odometro) || veiculo?.odometro_atual || 0,
         descricao,
         custo: parseFloat(custo) || 0
       });
@@ -156,7 +156,7 @@ function FormManutencao({ veiculos, onClose, onSalvo }) {
 
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-semibold text-muted-foreground">Veículo</label>
+            <label className="text-xs font-semibold text-muted-foreground">Ativo</label>
             <select value={veiculoId} onChange={(e) => setVeiculoId(e.target.value)} className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:border-primary outline-none">
               {veiculos.map((v) => <option key={v.id} value={v.id}>{v.nome}</option>)}
             </select>
@@ -177,7 +177,7 @@ function FormManutencao({ veiculos, onClose, onSalvo }) {
               <input type="number" value={custo} onChange={(e) => setCusto(e.target.value)} placeholder="0,00" className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:border-primary outline-none" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-muted-foreground">Odômetro (km)</label>
+              <label className="text-xs font-semibold text-muted-foreground">Leitura de Uso</label>
               <input type="number" value={odometro} onChange={(e) => setOdometro(e.target.value)} placeholder="00000" className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:border-primary outline-none" />
             </div>
           </div>

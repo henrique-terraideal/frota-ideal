@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Plus, Edit3, Trash2, X, Car, Check } from "lucide-react";
-import { TIPOS_VEICULO, STATUS_VEICULO, UNIDADES_TEMPO_USO, formatarTempoUso, infoUnidadeUso } from "@/lib/frota-constants";
+import { TIPOS_ATIVO, STATUS_ATIVO, UNIDADES_TEMPO_USO, formatarTempoUso, infoUnidadeUso } from "@/lib/frota-constants";
 
 export default function AdminVeiculos() {
   const [veiculos, setVeiculos] = useState([]);
@@ -11,27 +11,27 @@ export default function AdminVeiculos() {
   async function carregar() {
     setLoading(true);
     try {
-      setVeiculos(await base44.entities.Veiculo.list());
+      setVeiculos(await base44.entities.Ativo.list());
     } catch (e) { console.error(e); } finally { setLoading(false); }
   }
 
   useEffect(() => { carregar(); }, []);
 
   async function excluir(id) {
-    if (!confirm("Excluir este veículo permanentemente?")) return;
-    try { await base44.entities.Veiculo.delete(id); carregar(); } catch (e) { alert(e.message); }
+    if (!confirm("Excluir este ativo permanentemente?")) return;
+    try { await base44.entities.Ativo.delete(id); carregar(); } catch (e) { alert(e.message); }
   }
 
   return (
     <div className="space-y-3">
       <button onClick={() => setEditando({})} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white font-semibold text-sm">
-        <Plus className="w-4 h-4" /> Cadastrar Veículo / Equipamento
+        <Plus className="w-4 h-4" /> Cadastrar Ativo / Equipamento
       </button>
 
       {loading ? (
         <div className="flex justify-center py-10"><div className="w-7 h-7 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>
       ) : veiculos.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-8">Nenhum veículo cadastrado</p>
+        <p className="text-sm text-muted-foreground text-center py-8">Nenhum ativo cadastrado</p>
       ) : (
         veiculos.map((v) => (
           <div key={v.id} className="bg-white rounded-xl border border-border p-3">
@@ -40,7 +40,7 @@ export default function AdminVeiculos() {
                 <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><Car className="w-4 h-4 text-primary" /></div>
                 <div className="min-w-0">
                   <p className="font-semibold text-sm truncate">{v.nome}</p>
-                  <p className="text-xs text-muted-foreground">{v.modelo || TIPOS_VEICULO[v.tipo]} • {formatarTempoUso(v)}</p>
+                  <p className="text-xs text-muted-foreground">{v.modelo || TIPOS_ATIVO[v.tipo]} • {formatarTempoUso(v)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
@@ -89,9 +89,9 @@ function FormVeiculo({ veiculo, onClose, onSalvo }) {
         odometro_proxima_revisao: ehIdade ? null : (parseInt(form.odometro_proxima_revisao) || 10000)
       };
       if (veiculo.id) {
-        await base44.entities.Veiculo.update(veiculo.id, dados);
+        await base44.entities.Ativo.update(veiculo.id, dados);
       } else {
-        await base44.entities.Veiculo.create(dados);
+        await base44.entities.Ativo.create(dados);
       }
       onSalvo();
     } catch (e) { alert(e.message); } finally { setSalvando(false); }
@@ -117,13 +117,13 @@ function FormVeiculo({ veiculo, onClose, onSalvo }) {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
       <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-lg">{veiculo.id ? "Editar Veículo" : "Cadastrar Veículo / Equipamento"}</h2>
+          <h2 className="font-bold text-lg">{veiculo.id ? "Editar Ativo" : "Cadastrar Ativo / Equipamento"}</h2>
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><X className="w-4 h-4" /></button>
         </div>
         <div className="space-y-3">
           {field("nome", "Nome *")}
           <div className="grid grid-cols-2 gap-3">
-            {selectField("tipo", "Tipo", TIPOS_VEICULO)}
+            {selectField("tipo", "Tipo", TIPOS_ATIVO)}
             {field("modelo", "Modelo")}
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -132,7 +132,7 @@ function FormVeiculo({ veiculo, onClose, onSalvo }) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             {field("ano", "Ano", "number")}
-            {selectField("status", "Status", STATUS_VEICULO)}
+            {selectField("status", "Status", STATUS_ATIVO)}
           </div>
 
           {/* Tempo de Uso */}

@@ -6,30 +6,31 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action } = body;
 
-    // Lista veículos ativos para o passo 4 do onboarding
+    // Lista ativos ativos para o passo 4 do onboarding
     if (action === "listar") {
-      const veiculos = await base44.asServiceRole.entities.Veiculo.filter({ status: "ativo" });
+      const ativos = await base44.asServiceRole.entities.Ativo.filter({ status: "ativo" });
       return Response.json({
-        veiculos: veiculos.map((v) => ({ id: v.id, nome: v.nome }))
+        veiculos: ativos.map((a) => ({ id: a.id, nome: a.nome })),
+        ativos: ativos.map((a) => ({ id: a.id, nome: a.nome }))
       });
     }
 
-    // Vincula (ou cria) um ComputadorDeBordo ao veículo selecionado
+    // Vincula (ou cria) um ComputadorDeBordo ao ativo selecionado
     if (action === "vincular") {
       const { device_id, veiculo_id } = body;
       if (!device_id || !veiculo_id) {
         return Response.json({ error: "device_id e veiculo_id são obrigatórios" }, { status: 400 });
       }
 
-      const veiculo = await base44.asServiceRole.entities.Veiculo.get(veiculo_id);
-      const veiculo_nome = veiculo?.nome || "";
+      const ativo = await base44.asServiceRole.entities.Ativo.get(veiculo_id);
+      const ativo_nome = ativo?.nome || "";
 
       // Se já existe um dispositivo com este device_id, atualiza o vínculo
       const existentes = await base44.asServiceRole.entities.ComputadorDeBordo.filter({ device_id });
       if (existentes.length > 0) {
         const atualizado = await base44.asServiceRole.entities.ComputadorDeBordo.update(existentes[0].id, {
-          veiculo_id,
-          veiculo_nome,
+          ativo_id: veiculo_id,
+          ativo_nome,
           ativo: true
         });
         return Response.json({ success: true, dispositivo: atualizado, criado: false });
@@ -38,9 +39,9 @@ Deno.serve(async (req) => {
       // Senão, cria um novo registro
       const novo = await base44.asServiceRole.entities.ComputadorDeBordo.create({
         device_id,
-        veiculo_id,
-        veiculo_nome,
-        nome: `Bordo - ${veiculo_nome}`,
+        ativo_id: veiculo_id,
+        ativo_nome,
+        nome: `Bordo - ${ativo_nome}`,
         ativo: true,
         versao_checklist: 0
       });

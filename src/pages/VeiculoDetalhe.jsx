@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { ChevronLeft, Car, Gauge, Receipt, Wrench, ClipboardList, Calendar, CheckCircle2, Cpu, Smartphone, ClipboardCheck, Repeat, Copy, X, Loader2, Check } from "lucide-react";
-import { formatarDataBR, formatarDataHoraBR, formatarMoeda, STATUS_MULTA, STATUS_MANUTENCAO, TIPOS_MANUTENCAO, TIPOS_VEICULO, UNIDADES_TEMPO_USO, tempoUsoAtual } from "@/lib/frota-constants";
+import { formatarDataBR, formatarDataHoraBR, formatarMoeda, STATUS_MULTA, STATUS_MANUTENCAO, TIPOS_MANUTENCAO, TIPOS_ATIVO, UNIDADES_TEMPO_USO, tempoUsoAtual } from "@/lib/frota-constants";
 import VeiculoChecklist from "@/components/frota/VeiculoChecklist";
 import VeiculoPlanos from "@/components/frota/VeiculoPlanos";
 
@@ -20,12 +20,12 @@ export default function VeiculoDetalhe() {
   async function load() {
     setLoading(true);
     try {
-      const v = await base44.entities.Veiculo.get(id);
+      const v = await base44.entities.Ativo.get(id);
       setVeiculo(v);
       const [regs, mans, mult] = await Promise.all([
-        base44.entities.RegistroUso.filter({ veiculo_id: id }, "-created_date", 30),
-        base44.entities.Manutencao.filter({ veiculo_id: id }, "-created_date", 30),
-        base44.entities.Multa.filter({ veiculo_id: id }, "-created_date", 30)
+        base44.entities.RegistroUso.filter({ ativo_id: id }, "-created_date", 30),
+        base44.entities.Manutencao.filter({ ativo_id: id }, "-created_date", 30),
+        base44.entities.Multa.filter({ ativo_id: id }, "-created_date", 30)
       ]);
       setRegistros(regs);
       setManutencoes(mans);
@@ -40,7 +40,7 @@ export default function VeiculoDetalhe() {
   useEffect(() => { load(); }, [id]);
 
   if (loading) return <div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
-  if (!veiculo) return <div className="flex flex-col items-center justify-center py-20"><p className="text-muted-foreground">Veículo não encontrado</p><button onClick={() => navigate("/frota")} className="mt-3 text-primary">Voltar</button></div>;
+  if (!veiculo) return <div className="flex flex-col items-center justify-center py-20"><p className="text-muted-foreground">Ativo não encontrado</p><button onClick={() => navigate("/frota")} className="mt-3 text-primary">Voltar</button></div>;
 
   const tabs = [
     { id: "historico", label: "Histórico", icon: ClipboardList },
@@ -65,7 +65,7 @@ export default function VeiculoDetalhe() {
           </div>
           <div>
             <h1 className="text-xl font-bold">{veiculo.nome}</h1>
-            <p className="text-white/70 text-xs">{veiculo.modelo || TIPOS_VEICULO[veiculo.tipo]} • {veiculo.ano || "—"} • {veiculo.placa || "Sem placa"}</p>
+            <p className="text-white/70 text-xs">{veiculo.modelo || TIPOS_ATIVO[veiculo.tipo]} • {veiculo.ano || "—"} • {veiculo.placa || "Sem placa"}</p>
           </div>
         </div>
       </div>
@@ -108,13 +108,13 @@ export default function VeiculoDetalhe() {
               {registros.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">Sem registros de uso</p> : registros.map((r) => (
                 <div key={r.id} className="bg-white rounded-xl border border-border p-3">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-semibold text-sm">{r.motorista_nome}</span>
+                    <span className="font-semibold text-sm">{r.operador_nome}</span>
                     {r.tem_anomalia ? <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Anomalia</span> : <CheckCircle2 className="w-4 h-4 text-green-500" />}
                   </div>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     {r.origem === "app" ? <Smartphone className="w-3 h-3" /> : <Cpu className="w-3 h-3" />}
                     <span>{formatarDataHoraBR(r.data_hora_inicio)}</span>
-                    <span>{(r.odometro_registrado || 0).toLocaleString("pt-BR")} km</span>
+                    <span>{(r.leitura_uso || 0).toLocaleString("pt-BR")}</span>
                   </div>
                 </div>
               ))}
@@ -151,7 +151,7 @@ export default function VeiculoDetalhe() {
                     <Calendar className="w-3 h-3" /> {formatarDataHoraBR(m.data_infracao)}
                     <span className="font-semibold text-foreground">{formatarMoeda(m.valor)}</span>
                   </div>
-                  {m.motorista_identificado_nome && <p className="text-xs text-muted-foreground mt-1">Motorista: {m.motorista_identificado_nome}</p>}
+                  {m.operador_identificado_nome && <p className="text-xs text-muted-foreground mt-1">Operador: {m.operador_identificado_nome}</p>}
                 </div>
               ))}
             </div>
@@ -187,13 +187,13 @@ function ModalDuplicar({ veiculoOrigemId, veiculoNome, onClose, onDuplicado }) {
         nova_placa: placa.trim()
       });
       if (res.data?.success) {
-        onDuplicado(res.data.novo_veiculo_id);
+        onDuplicado(res.data.novo_veiculo_id || res.data.novo_ativo_id);
       } else {
-        alert(res.data?.error || "Erro ao duplicar veículo");
+        alert(res.data?.error || "Erro ao duplicar ativo");
         setDuplicando(false);
       }
     } catch (e) {
-      alert(e.message || "Erro ao duplicar veículo");
+      alert(e.message || "Erro ao duplicar ativo");
       setDuplicando(false);
     }
   }
@@ -202,15 +202,15 @@ function ModalDuplicar({ veiculoOrigemId, veiculoNome, onClose, onDuplicado }) {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
       <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-lg flex items-center gap-2"><Copy className="w-5 h-5 text-primary" /> Duplicar Veículo</h2>
+          <h2 className="font-bold text-lg flex items-center gap-2"><Copy className="w-5 h-5 text-primary" /> Duplicar Ativo</h2>
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><X className="w-4 h-4" /></button>
         </div>
         <p className="text-sm text-muted-foreground mb-3">
-          Será criado um novo veículo copiando os dados básicos, o checklist e os planos de manutenção preventiva de <strong>{veiculoNome}</strong>. O odômetro começará em zero.
+          Será criado um novo ativo copiando os dados básicos, o checklist e os planos de manutenção preventiva de <strong>{veiculoNome}</strong>. A leitura de uso começará em zero.
         </p>
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-semibold text-muted-foreground">Nome do novo veículo *</label>
+            <label className="text-xs font-semibold text-muted-foreground">Nome do novo ativo *</label>
             <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Carro Terra Ideal 2" className="w-full border border-border rounded-xl px-3 py-2.5 text-sm mt-1 focus:border-primary outline-none" />
           </div>
           <div>
@@ -219,7 +219,7 @@ function ModalDuplicar({ veiculoOrigemId, veiculoNome, onClose, onDuplicado }) {
           </div>
         </div>
         <button onClick={duplicar} disabled={duplicando || !nome.trim()} className="w-full mt-4 py-3.5 rounded-xl bg-primary text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2">
-          {duplicando ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4" /> Duplicar Veículo</>}
+          {duplicando ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4" /> Duplicar Ativo</>}
         </button>
       </div>
     </div>

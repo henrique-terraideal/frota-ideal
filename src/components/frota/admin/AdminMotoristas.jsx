@@ -4,22 +4,22 @@ import { Plus, Edit3, Trash2, X, User, Check } from "lucide-react";
 import { PERMISSOES } from "@/lib/frota-constants";
 
 export default function AdminMotoristas() {
-  const [motoristas, setMotoristas] = useState([]);
+  const [operadores, setOperadores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editando, setEditando] = useState(null);
 
   async function carregar() {
     setLoading(true);
     try {
-      setMotoristas(await base44.entities.Motorista.list());
+      setOperadores(await base44.entities.Operador.list());
     } catch (e) { console.error(e); } finally { setLoading(false); }
   }
 
   useEffect(() => { carregar(); }, []);
 
   async function excluir(id) {
-    if (!confirm("Excluir este motorista?")) return;
-    try { await base44.entities.Motorista.delete(id); carregar(); } catch (e) { alert(e.message); }
+    if (!confirm("Excluir este operador?")) return;
+    try { await base44.entities.Operador.delete(id); carregar(); } catch (e) { alert(e.message); }
   }
 
   async function convidar(email, role) {
@@ -32,21 +32,21 @@ export default function AdminMotoristas() {
   return (
     <div className="space-y-3">
       <button onClick={() => setEditando({})} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white font-semibold text-sm">
-        <Plus className="w-4 h-4" /> Cadastrar Motorista
+        <Plus className="w-4 h-4" /> Cadastrar Operador
       </button>
 
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
         <p className="text-xs text-blue-700">
-          💡 Para que um motorista faça login no app, cadastre-o aqui com o e-mail e depois convide-o pelo sistema (botão "Convidar"). O usuário receberá um e-mail para definir a senha.
+          💡 Para que um operador faça login no app, cadastre-o aqui com o e-mail e depois convide-o pelo sistema (botão "Convidar"). O usuário receberá um e-mail para definir a senha.
         </p>
       </div>
 
       {loading ? (
         <div className="flex justify-center py-10"><div className="w-7 h-7 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>
-      ) : motoristas.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-8">Nenhum motorista cadastrado</p>
+      ) : operadores.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-8">Nenhum operador cadastrado</p>
       ) : (
-        motoristas.map((m) => (
+        operadores.map((m) => (
           <div key={m.id} className="bg-white rounded-xl border border-border p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -68,20 +68,20 @@ export default function AdminMotoristas() {
         ))
       )}
 
-      {editando && <FormMotorista motorista={editando} onClose={() => setEditando(null)} onSalvo={() => { setEditando(null); carregar(); }} onConvidar={convidar} />}
+      {editando && <FormOperador operador={editando} onClose={() => setEditando(null)} onSalvo={() => { setEditando(null); carregar(); }} onConvidar={convidar} />}
     </div>
   );
 }
 
-function FormMotorista({ motorista, onClose, onSalvo, onConvidar }) {
+function FormOperador({ operador, onClose, onSalvo, onConvidar }) {
   const [form, setForm] = useState({
-    nome: motorista.nome || "",
-    codigo_bordo: motorista.codigo_bordo || "",
-    permissao: motorista.permissao || "motorista",
-    ativo: motorista.ativo !== false,
-    telefone: motorista.telefone || "",
+    nome: operador.nome || "",
+    codigo_bordo: operador.codigo_bordo || "",
+    permissao: operador.permissao || "motorista",
+    ativo: operador.ativo !== false,
+    telefone: operador.telefone || "",
     email: "",
-    user_id: motorista.user_id || ""
+    user_id: operador.user_id || ""
   });
   const [salvando, setSalvando] = useState(false);
 
@@ -90,12 +90,11 @@ function FormMotorista({ motorista, onClose, onSalvo, onConvidar }) {
     try {
       const dados = { ...form };
       delete dados.email;
-      if (motorista.id) {
-        await base44.entities.Motorista.update(motorista.id, dados);
+      if (operador.id) {
+        await base44.entities.Operador.update(operador.id, dados);
       } else {
-        await base44.entities.Motorista.create(dados);
+        await base44.entities.Operador.create(dados);
       }
-      // Se tem email e não tem user_id, convida
       if (form.email && !form.user_id) {
         await onConvidar(form.email, form.permissao);
       }
@@ -107,7 +106,7 @@ function FormMotorista({ motorista, onClose, onSalvo, onConvidar }) {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
       <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-lg">{motorista.id ? "Editar Motorista" : "Cadastrar Motorista"}</h2>
+          <h2 className="font-bold text-lg">{operador.id ? "Editar Operador" : "Cadastrar Operador"}</h2>
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><X className="w-4 h-4" /></button>
         </div>
         <div className="space-y-3">
@@ -118,7 +117,7 @@ function FormMotorista({ motorista, onClose, onSalvo, onConvidar }) {
           <div>
             <label className="text-xs font-semibold text-muted-foreground">Código do Computador de Bordo</label>
             <input value={form.codigo_bordo} onChange={(e) => setForm({ ...form, codigo_bordo: e.target.value })} placeholder="Ex: 1, 2, A" className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none" />
-            <p className="text-[10px] text-muted-foreground mt-1">Tecla que o motorista pressiona no ESP32 para se identificar</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Tecla que o operador pressiona no ESP32 para se identificar</p>
           </div>
           <div>
             <label className="text-xs font-semibold text-muted-foreground">Permissão</label>

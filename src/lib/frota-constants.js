@@ -1,4 +1,4 @@
-// Utilitários de formatação para o frontend da Gestão de Frota
+// Utilitários de formatação para o frontend da Gestão de Patrimônio
 
 export function formatarDataBR(iso) {
   if (!iso) return "";
@@ -45,7 +45,7 @@ export const PRIORIDADE = {
   baixa: { label: "Baixa", cor: "bg-green-100 text-green-700" }
 };
 
-export const TIPOS_VEICULO = {
+export const TIPOS_ATIVO = {
   carro: "Carro",
   caminhonete: "Caminhonete",
   maquina: "Máquina",
@@ -55,38 +55,38 @@ export const TIPOS_VEICULO = {
 };
 
 export const UNIDADES_TEMPO_USO = {
-  km: { label: "km", titulo: "Quilometragem", campo: "Odômetro", pergunta: "Qual a quilometragem atual do painel?", passo: "Odômetro Atual" },
-  horas: { label: "h", titulo: "Horímetro", campo: "Horímetro", pergunta: "Qual a leitura do horímetro (horas)?", passo: "Horímetro Atual" },
-  ciclos: { label: "ciclos", titulo: "Ciclos", campo: "Contador de Ciclos", pergunta: "Qual a contagem de ciclos atual?", passo: "Contador Atual" },
+  km: { label: "km", titulo: "Quilometragem", campo: "Odômetro", pergunta: "Qual a quilometragem atual do painel?", passo: "Leitura de Uso Atual" },
+  horas: { label: "h", titulo: "Horímetro", campo: "Horímetro", pergunta: "Qual a leitura do horímetro (horas)?", passo: "Leitura de Uso Atual" },
+  ciclos: { label: "ciclos", titulo: "Ciclos", campo: "Contador de Ciclos", pergunta: "Qual a contagem de ciclos atual?", passo: "Leitura de Uso Atual" },
   idade_dias: { label: "dias", titulo: "Idade (dias)", campo: "Idade", pergunta: null, passo: null }
 };
 
-export function infoUnidadeUso(veiculo) {
-  return UNIDADES_TEMPO_USO[veiculo?.unidade_tempo_uso || "km"] || UNIDADES_TEMPO_USO.km;
+export function infoUnidadeUso(ativo) {
+  return UNIDADES_TEMPO_USO[ativo?.unidade_tempo_uso || "km"] || UNIDADES_TEMPO_USO.km;
 }
 
-export function tempoUsoAtual(veiculo) {
-  const unidade = veiculo?.unidade_tempo_uso || "km";
+export function tempoUsoAtual(ativo) {
+  const unidade = ativo?.unidade_tempo_uso || "km";
   if (unidade === "idade_dias") {
-    if (!veiculo?.data_aquisicao) return 0;
-    return Math.max(0, Math.floor((Date.now() - new Date(veiculo.data_aquisicao).getTime()) / 86400000));
+    if (!ativo?.data_aquisicao) return 0;
+    return Math.max(0, Math.floor((Date.now() - new Date(ativo.data_aquisicao).getTime()) / 86400000));
   }
-  return veiculo?.odometro_atual || 0;
+  return ativo?.odometro_atual || 0;
 }
 
-export function formatarTempoUso(veiculo) {
-  const info = infoUnidadeUso(veiculo);
-  return `${tempoUsoAtual(veiculo).toLocaleString("pt-BR")} ${info.label}`;
+export function formatarTempoUso(ativo) {
+  const info = infoUnidadeUso(ativo);
+  return `${tempoUsoAtual(ativo).toLocaleString("pt-BR")} ${info.label}`;
 }
 
-export const STATUS_VEICULO = {
+export const STATUS_ATIVO = {
   ativo: { label: "Ativo", cor: "bg-green-100 text-green-700" },
   inativo: { label: "Inativo", cor: "bg-gray-100 text-gray-700" },
   em_manutencao: { label: "Em Manutenção", cor: "bg-amber-100 text-amber-700" }
 };
 
 export const TIPOS_MANUTENCAO = {
-  lavagem: "Lavagem",
+  lavagem: "Limpeza",
   revisao_concessionaria: "Revisão na Concessionária",
   calibragem: "Calibragem",
   troca_oleo: "Troca de Óleo",
@@ -108,8 +108,10 @@ export const STATUS_MULTA = {
 };
 
 export const PERMISSOES = {
-  motorista: "Motorista",
-  admin: "Administrador"
+  motorista: "Operador",
+  gestor: "Gestor",
+  administrativo: "Administrativo",
+  administrador: "Administrador"
 };
 
 export const UNIDADES_TEMPO = {

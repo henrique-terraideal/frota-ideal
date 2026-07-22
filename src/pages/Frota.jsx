@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Car, ChevronLeft, Gauge, FileText, Wrench, Receipt, Calendar, Settings, Plus, Edit3, X, Check } from "lucide-react";
 import { useFrotaData, isGestorOuAdmin } from "@/hooks/useFrotaData";
-import { formatarDataBR, formatarDataHoraBR, STATUS_VEICULO, TIPOS_VEICULO, diasAteVencimento, formatarMoeda, STATUS_MULTA, STATUS_MANUTENCAO, TIPOS_MANUTENCAO, UNIDADES_TEMPO_USO, tempoUsoAtual, infoUnidadeUso } from "@/lib/frota-constants";
+import { formatarDataBR, formatarDataHoraBR, diasAteVencimento, formatarMoeda, STATUS_MULTA, STATUS_MANUTENCAO, TIPOS_MANUTENCAO, TIPOS_ATIVO, STATUS_ATIVO, UNIDADES_TEMPO_USO, tempoUsoAtual, infoUnidadeUso } from "@/lib/frota-constants";
 
 export default function Frota() {
   const { veiculos, loading } = useFrotaData();
@@ -21,8 +21,8 @@ export default function Frota() {
             <Car className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">Frota</h1>
-            <p className="text-xs text-muted-foreground">{veiculos.length} veículo(s)</p>
+            <h1 className="text-xl font-bold">Patrimônio</h1>
+            <p className="text-xs text-muted-foreground">{veiculos.length} ativo(s)</p>
           </div>
         </div>
       </div>
@@ -31,7 +31,7 @@ export default function Frota() {
         {veiculos.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Car className="w-12 h-12 text-muted-foreground/30 mb-3" />
-            <p className="text-sm text-muted-foreground">Nenhum veículo cadastrado</p>
+            <p className="text-sm text-muted-foreground">Nenhum ativo cadastrado</p>
           </div>
         ) : (
           veiculos.map((v) => <VeiculoCard key={v.id} veiculo={v} />)
@@ -56,10 +56,10 @@ function VeiculoCard({ veiculo }) {
         </div>
         <div className="flex-1">
           <h2 className="font-bold text-base">{veiculo.nome}</h2>
-          <p className="text-xs text-muted-foreground">{veiculo.modelo || TIPOS_VEICULO[veiculo.tipo] || veiculo.tipo} • {veiculo.ano || "—"}</p>
+          <p className="text-xs text-muted-foreground">{veiculo.modelo || TIPOS_ATIVO[veiculo.tipo] || veiculo.tipo} • {veiculo.ano || "—"}</p>
           {veiculo.placa && <span className="inline-block text-xs font-mono bg-white px-2 py-0.5 rounded mt-1 border border-border">{veiculo.placa}</span>}
         </div>
-        <span className={`text-xs px-2 py-1 rounded-full ${STATUS_VEICULO[veiculo.status]?.cor || ""}`}>{STATUS_VEICULO[veiculo.status]?.label || veiculo.status}</span>
+        <span className={`text-xs px-2 py-1 rounded-full ${STATUS_ATIVO[veiculo.status]?.cor || ""}`}>{STATUS_ATIVO[veiculo.status]?.label || veiculo.status}</span>
       </div>
 
       <div className="p-4 space-y-3">

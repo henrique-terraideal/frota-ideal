@@ -2,13 +2,13 @@
   "name": "Manutencao",
   "type": "object",
   "properties": {
-    "veiculo_id": {
+    "ativo_id": {
       "type": "string",
-      "title": "Ve\u00edculo"
+      "title": "Ativo"
     },
-    "veiculo_nome": {
+    "ativo_nome": {
       "type": "string",
-      "title": "Nome do Ve\u00edculo"
+      "title": "Nome do Ativo"
     },
     "tipo": {
       "type": "string",
@@ -42,9 +42,9 @@
       "format": "date",
       "title": "Data Realizada"
     },
-    "odometro_na_manutencao": {
+    "leitura_uso_na_manutencao": {
       "type": "number",
-      "title": "Od\u00f4metro na Manuten\u00e7\u00e3o (km)"
+      "title": "Leitura de Uso na Manuten\u00e7\u00e3o"
     },
     "descricao": {
       "type": "string",
@@ -68,7 +68,7 @@
     }
   },
   "required": [
-    "veiculo_id",
+    "ativo_id",
     "tipo"
   ]
 }

@@ -25,7 +25,7 @@ export default function AdminUsuarios() {
 
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
         <p className="text-xs text-blue-700">
-          💡 Todo usuário é um motorista. Convide pelo e-mail, e depois defina o papel (motorista/admin) e o código do computador de bordo.
+          💡 Todo usuário é um operador. Convide pelo e-mail, e depois defina o papel (operador/admin) e o código do computador de bordo.
         </p>
       </div>
 
@@ -50,7 +50,7 @@ export default function AdminUsuarios() {
               </div>
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 <span className={`text-[10px] px-2 py-1 rounded-full ${u.role === "admin" ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>
-                  {u.role === "admin" ? "Admin" : "Motorista"}
+                  {u.role === "admin" ? "Admin" : "Operador"}
                 </span>
                 <button onClick={() => setEditando(u)} className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center"><UserCog className="w-3.5 h-3.5 text-muted-foreground" /></button>
               </div>
@@ -104,15 +104,15 @@ function FormUsuario({ usuario, onClose, onSalvo }) {
           <div>
             <label className="text-xs font-semibold text-muted-foreground">Papel (o que este usuário pode acessar)</label>
             <div className="grid grid-cols-2 gap-2 mt-1">
-              <button onClick={() => setForm({ ...form, role: "motorista" })} className={`py-2.5 rounded-xl text-sm font-semibold border-2 ${form.role === "motorista" ? "bg-primary text-white border-primary" : "bg-white text-muted-foreground border-border"}`}>Motorista</button>
+              <button onClick={() => setForm({ ...form, role: "motorista" })} className={`py-2.5 rounded-xl text-sm font-semibold border-2 ${form.role === "motorista" ? "bg-primary text-white border-primary" : "bg-white text-muted-foreground border-border"}`}>Operador</button>
               <button onClick={() => setForm({ ...form, role: "admin" })} className={`py-2.5 rounded-xl text-sm font-semibold border-2 ${form.role === "admin" ? "bg-primary text-white border-primary" : "bg-white text-muted-foreground border-border"}`}>Admin</button>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1">Admin tem acesso a tudo, incluindo as funções de motorista</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Admin tem acesso a tudo, incluindo as funções de operador</p>
           </div>
           <div>
             <label className="text-xs font-semibold text-muted-foreground">Código do Computador de Bordo</label>
             <input value={form.codigo_bordo} onChange={(e) => setForm({ ...form, codigo_bordo: e.target.value })} placeholder="Ex: 1, 2, A" className="w-full border border-border rounded-xl px-3 py-2 text-sm mt-1 focus:border-primary outline-none" />
-            <p className="text-[10px] text-muted-foreground mt-1">Tecla que o motorista pressiona no ESP32 para se identificar</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Tecla que o operador pressiona no ESP32 para se identificar</p>
           </div>
           <div>
             <label className="text-xs font-semibold text-muted-foreground">Telefone</label>

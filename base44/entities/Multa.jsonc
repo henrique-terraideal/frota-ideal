@@ -2,21 +2,21 @@
   "name": "Multa",
   "type": "object",
   "properties": {
-    "veiculo_id": {
+    "ativo_id": {
       "type": "string",
-      "title": "Ve\u00edculo"
+      "title": "Ativo"
     },
-    "veiculo_nome": {
+    "ativo_nome": {
       "type": "string",
-      "title": "Nome do Ve\u00edculo"
+      "title": "Nome do Ativo"
     },
-    "motorista_identificado_id": {
+    "operador_identificado_id": {
       "type": "string",
-      "title": "Motorista Identificado"
+      "title": "Operador Identificado"
     },
-    "motorista_identificado_nome": {
+    "operador_identificado_nome": {
       "type": "string",
-      "title": "Nome do Motorista Identificado"
+      "title": "Nome do Operador Identificado"
     },
     "data_infracao": {
       "type": "string",
@@ -84,7 +84,7 @@
     }
   },
   "required": [
-    "veiculo_id",
+    "ativo_id",
     "data_infracao"
   ]
 }

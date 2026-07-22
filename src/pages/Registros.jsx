@@ -20,7 +20,7 @@ export default function Registros() {
       if (isGestorOuAdmin(motorista)) {
         data = await base44.entities.RegistroUso.list("-created_date", 100);
       } else if (motorista?.id) {
-        data = await base44.entities.RegistroUso.filter({ motorista_id: motorista.id }, "-created_date", 100);
+        data = await base44.entities.RegistroUso.filter({ operador_id: motorista.id }, "-created_date", 100);
       } else {
         data = [];
       }
@@ -34,7 +34,7 @@ export default function Registros() {
 
   useEffect(() => { carregar(); }, [motorista]);
 
-  const registrosFiltrados = filtroVeiculo ? registros.filter((r) => r.veiculo_id === filtroVeiculo) : registros;
+  const registrosFiltrados = filtroVeiculo ? registros.filter((r) => r.ativo_id === filtroVeiculo) : registros;
 
   return (
     <div className="min-h-full">
@@ -81,7 +81,7 @@ export default function Registros() {
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${r.origem === "app" ? "bg-green-100" : "bg-blue-100"}`}>
                     {r.origem === "app" ? <Smartphone className="w-4 h-4 text-green-600" /> : <Cpu className="w-4 h-4 text-blue-600" />}
                   </div>
-                  <span className="font-semibold text-sm">{r.motorista_nome || "—"}</span>
+                  <span className="font-semibold text-sm">{r.operador_nome || "—"}</span>
                 </div>
                 {r.tem_anomalia ? (
                   <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Anomalia</span>
@@ -90,9 +90,9 @@ export default function Registros() {
                 )}
               </div>
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <span className="font-medium text-foreground">{r.veiculo_nome || "—"}</span>
+                <span className="font-medium text-foreground">{r.ativo_nome || "—"}</span>
                 <div className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatarDataHoraBR(r.data_hora_inicio)}</div>
-                <div className="flex items-center gap-1"><Gauge className="w-3 h-3" />{(r.odometro_registrado || 0).toLocaleString("pt-BR")} km</div>
+                <div className="flex items-center gap-1"><Gauge className="w-3 h-3" />{(r.leitura_uso || 0).toLocaleString("pt-BR")}</div>
               </div>
             </button>
           ))}
@@ -134,18 +134,18 @@ function RegistroDetalhe({ registro, onClose }) {
           <div className="flex items-center gap-3 bg-muted/50 rounded-xl p-3">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"><User className="w-5 h-5 text-primary" /></div>
             <div>
-              <p className="font-semibold text-sm">{registro.motorista_nome}</p>
+              <p className="font-semibold text-sm">{registro.operador_nome}</p>
               <p className="text-xs text-muted-foreground">{formatarDataHoraBR(registro.data_hora_inicio)}</p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-muted/50 rounded-xl p-3">
-              <p className="text-xs text-muted-foreground">Veículo</p>
-              <p className="text-sm font-semibold">{registro.veiculo_nome}</p>
+              <p className="text-xs text-muted-foreground">Ativo</p>
+              <p className="text-sm font-semibold">{registro.ativo_nome}</p>
             </div>
             <div className="bg-muted/50 rounded-xl p-3">
-              <p className="text-xs text-muted-foreground">Odômetro</p>
-              <p className="text-sm font-semibold">{(registro.odometro_registrado || 0).toLocaleString("pt-BR")} km</p>
+              <p className="text-xs text-muted-foreground">Leitura de Uso</p>
+              <p className="text-sm font-semibold">{(registro.leitura_uso || 0).toLocaleString("pt-BR")}</p>
             </div>
             <div className="bg-muted/50 rounded-xl p-3">
               <p className="text-xs text-muted-foreground">Origem</p>

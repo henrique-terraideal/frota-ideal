@@ -84,15 +84,15 @@ function MultaCard({ multa, onAtualizado }) {
       <div className="flex items-start justify-between mb-2">
         <div>
           <p className="font-semibold text-sm">{multa.descricao_infracao || "Infração"}</p>
-          <p className="text-xs text-muted-foreground">{multa.veiculo_nome}</p>
+          <p className="text-xs text-muted-foreground">{multa.ativo_nome}</p>
         </div>
         <span className={`text-xs px-2 py-1 rounded-full ${STATUS_MULTA[multa.status]?.cor || ""}`}>{STATUS_MULTA[multa.status]?.label || multa.status}</span>
       </div>
       <div className="space-y-1 text-xs text-muted-foreground">
         <div className="flex items-center gap-2"><Calendar className="w-3 h-3" /> {formatarDataHoraBR(multa.data_infracao)}</div>
         {multa.local_infracao && <div className="flex items-center gap-2"><FileText className="w-3 h-3" /> {multa.local_infracao}</div>}
-        {multa.motorista_identificado_nome && (
-          <div className="flex items-center gap-2"><User className="w-3 h-3" /> {multa.motorista_identificado_nome}</div>
+        {multa.operador_identificado_nome && (
+          <div className="flex items-center gap-2"><User className="w-3 h-3" /> {multa.operador_identificado_nome}</div>
         )}
       </div>
       <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
@@ -130,9 +130,9 @@ function FormMulta({ veiculos, onClose, onSalvo }) {
   const [processando, setProcessando] = useState(false);
   const [erro, setErro] = useState("");
   const [resultado, setResultado] = useState(null);
-  const [motoristas, setMotoristas] = useState([]);
-  const [motoristaManual, setMotoristaManual] = useState("");
-  const [salvandoMotorista, setSalvandoMotorista] = useState(false);
+  const [operadores, setOperadores] = useState([]);
+  const [operadorManual, setOperadorManual] = useState("");
+  const [salvandoOperador, setSalvandoOperador] = useState(false);
   const fileInputRef = useRef(null);
 
   async function handleUpload(e) {
@@ -158,8 +158,8 @@ function FormMulta({ veiculos, onClose, onSalvo }) {
       const res = await base44.functions.invoke("processarFotoMulta", { foto_url: fotoUrl, veiculo_id: veiculoId });
       if (res.data?.success) {
         setResultado(res.data);
-        const motoristasAtivos = await base44.entities.Motorista.filter({ ativo: true });
-        setMotoristas(motoristasAtivos);
+        const operadoresAtivos = await base44.entities.Operador.filter({ ativo: true });
+        setOperadores(operadoresAtivos);
         setStep("resultado");
       } else {
         setErro(res.data?.error || "Erro ao processar multa");
@@ -171,26 +171,26 @@ function FormMulta({ veiculos, onClose, onSalvo }) {
     }
   }
 
-  async function identificarMotoristaManual() {
-    if (!motoristaManual || !resultado?.multa_id) return;
-    setSalvandoMotorista(true);
+  async function identificarOperadorManual() {
+    if (!operadorManual || !resultado?.multa_id) return;
+    setSalvandoOperador(true);
     try {
-      const motorista = motoristas.find((m) => m.id === motoristaManual);
+      const operador = operadores.find((m) => m.id === operadorManual);
       await base44.entities.Multa.update(resultado.multa_id, {
-        motorista_identificado_id: motorista.id,
-        motorista_identificado_nome: motorista.nome
+        operador_identificado_id: operador.id,
+        operador_identificado_nome: operador.nome
       });
       const pendencias = await base44.entities.Pendencia.filter({ referencia_id: resultado.multa_id, tipo: "multa" });
       if (pendencias.length > 0) {
         await base44.entities.Pendencia.update(pendencias[0].id, {
-          responsavel_id: motorista.id,
-          responsavel_nome: motorista.nome,
-          descricao: pendencias[0].descricao.replace("Motorista não identificado", `Motorista identificado: ${motorista.nome}`)
+          responsavel_id: operador.id,
+          responsavel_nome: operador.nome,
+          descricao: pendencias[0].descricao.replace("Operador não identificado", `Operador identificado: ${operador.nome}`)
         });
       }
-      setResultado({ ...resultado, motorista_identificado: motorista.nome, motorista_id: motorista.id });
-      setMotoristaManual("");
-    } catch (e) { alert(e.message); } finally { setSalvandoMotorista(false); }
+      setResultado({ ...resultado, motorista_identificado: operador.nome, operador_identificado: operador.nome, motorista_id: operador.id, operador_id: operador.id });
+      setOperadorManual("");
+    } catch (e) { alert(e.message); } finally { setSalvandoOperador(false); }
   }
 
   return (
@@ -203,7 +203,7 @@ function FormMulta({ veiculos, onClose, onSalvo }) {
 
         {step === "upload" && (
           <>
-            <label className="text-xs font-semibold text-muted-foreground">Veículo</label>
+            <label className="text-xs font-semibold text-muted-foreground">Ativo</label>
             <select value={veiculoId} onChange={(e) => setVeiculoId(e.target.value)} className="w-full border border-border rounded-xl px-3 py-2.5 text-sm mb-4 focus:border-primary outline-none">
               {veiculos.map((v) => <option key={v.id} value={v.id}>{v.nome}</option>)}
             </select>
@@ -231,7 +231,7 @@ function FormMulta({ veiculos, onClose, onSalvo }) {
 
             {fotoUrl && (
               <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3">
-                <p className="text-xs text-blue-700">A IA vai analisar a foto, extrair data/hora/valor/local e identificar o motorista que estava dirigindo no momento da infração.</p>
+                <p className="text-xs text-blue-700">A IA vai analisar a foto, extrair data/hora/valor/local e identificar o operador que estava conduzindo no momento da infração.</p>
               </div>
             )}
 
@@ -269,27 +269,27 @@ function FormMulta({ veiculos, onClose, onSalvo }) {
               </div>
             </div>
 
-            {resultado.motorista_identificado ? (
+            {resultado.operador_identificado ? (
               <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center gap-2">
                 <User className="w-4 h-4 text-green-600 flex-shrink-0" />
-                <p className="text-sm text-green-700">Motorista identificado: <strong>{resultado.motorista_identificado}</strong></p>
+                <p className="text-sm text-green-700">Operador identificado: <strong>{resultado.operador_identificado}</strong></p>
               </div>
             ) : (
               <div className="space-y-2">
                 <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
                   <p className="text-xs text-orange-700">
-                    <strong>Motorista não identificado automaticamente.</strong> O sistema cruzou os registros de uso mas não encontrou um condutor para este horário. Isso pode ocorrer se o registro de uso ainda não foi cadastrado. Você pode identificar o motorista manualmente.
+                    <strong>Operador não identificado automaticamente.</strong> O sistema cruzou os registros de uso mas não encontrou um condutor para este horário. Isso pode ocorrer se o registro de uso ainda não foi cadastrado. Você pode identificar o operador manualmente.
                   </p>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground">Identificar motorista manualmente</label>
+                  <label className="text-xs font-semibold text-muted-foreground">Identificar operador manualmente</label>
                   <div className="flex gap-2 mt-1">
-                    <select value={motoristaManual} onChange={(e) => setMotoristaManual(e.target.value)} className="flex-1 border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none">
+                    <select value={operadorManual} onChange={(e) => setOperadorManual(e.target.value)} className="flex-1 border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none">
                       <option value="">Selecione...</option>
-                      {motoristas.map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
+                      {operadores.map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
                     </select>
-                    <button onClick={identificarMotoristaManual} disabled={!motoristaManual || salvandoMotorista} className="px-4 rounded-xl bg-primary text-white text-sm font-semibold disabled:opacity-50 flex items-center gap-1">
-                      {salvandoMotorista ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Confirmar
+                    <button onClick={identificarOperadorManual} disabled={!operadorManual || salvandoOperador} className="px-4 rounded-xl bg-primary text-white text-sm font-semibold disabled:opacity-50 flex items-center gap-1">
+                      {salvandoOperador ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Confirmar
                     </button>
                   </div>
                 </div>

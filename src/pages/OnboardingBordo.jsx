@@ -8,28 +8,28 @@ export default function OnboardingBordo() {
   const navigate = useNavigate();
   const deviceId = searchParams.get("device_id");
   const [step, setStep] = useState(1);
-  const [veiculos, setVeiculos] = useState([]);
-  const [veiculoId, setVeiculoId] = useState("");
+  const [ativos, setAtivos] = useState([]);
+  const [ativoId, setAtivoId] = useState("");
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
   const [vinculado, setVinculado] = useState(null);
 
   useEffect(() => {
-    async function carregarVeiculos() {
+    async function carregarAtivos() {
       try {
         const res = await base44.functions.invoke("onboardingBordo", { action: "listar" });
-        setVeiculos(res.data?.veiculos || []);
+        setAtivos(res.data?.ativos || res.data?.veiculos || []);
       } catch (e) { console.error(e); }
     }
-    carregarVeiculos();
+    carregarAtivos();
   }, []);
 
   async function vincular() {
-    if (!veiculoId) { setErro("Selecione um veículo"); return; }
+    if (!ativoId) { setErro("Selecione um ativo"); return; }
     setLoading(true);
     setErro("");
     try {
-      const res = await base44.functions.invoke("onboardingBordo", { action: "vincular", device_id: deviceId, veiculo_id: veiculoId });
+      const res = await base44.functions.invoke("onboardingBordo", { action: "vincular", device_id: deviceId, veiculo_id: ativoId });
       if (res.data?.success) {
         setVinculado(res.data);
         setStep(5);
@@ -125,21 +125,21 @@ export default function OnboardingBordo() {
         {step === 4 && (
           <div className="pt-4 space-y-4">
             <div>
-              <h2 className="text-lg font-bold mb-1">Vincule o dispositivo a um veículo</h2>
-              <p className="text-sm text-muted-foreground">Selecione o veículo onde este Computador de Bordo está instalado:</p>
+              <h2 className="text-lg font-bold mb-1">Vincule o dispositivo a um ativo</h2>
+              <p className="text-sm text-muted-foreground">Selecione o ativo onde este Computador de Bordo está instalado:</p>
             </div>
             <div className="bg-white rounded-2xl border border-border p-2">
-              {veiculos.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Carregando veículos...</p>
+              {ativos.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Carregando ativos...</p>
               ) : (
-                <select value={veiculoId} onChange={(e) => setVeiculoId(e.target.value)} className="w-full border border-border rounded-xl px-3 py-3 text-sm focus:border-primary outline-none">
-                  <option value="">Selecione um veículo...</option>
-                  {veiculos.map((v) => <option key={v.id} value={v.id}>{v.nome}</option>)}
+                <select value={ativoId} onChange={(e) => setAtivoId(e.target.value)} className="w-full border border-border rounded-xl px-3 py-3 text-sm focus:border-primary outline-none">
+                  <option value="">Selecione um ativo...</option>
+                  {ativos.map((v) => <option key={v.id} value={v.id}>{v.nome}</option>)}
                 </select>
               )}
             </div>
             {erro && <p className="text-sm text-red-500 text-center">{erro}</p>}
-            <button onClick={vincular} disabled={loading || !veiculoId} className="w-full py-3.5 rounded-xl bg-primary text-white font-bold flex items-center justify-center gap-2 disabled:opacity-50">
+            <button onClick={vincular} disabled={loading || !ativoId} className="w-full py-3.5 rounded-xl bg-primary text-white font-bold flex items-center justify-center gap-2 disabled:opacity-50">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Car className="w-4 h-4" />} Vincular e Finalizar
             </button>
           </div>
@@ -152,7 +152,7 @@ export default function OnboardingBordo() {
             </div>
             <h2 className="text-xl font-bold mb-2">Dispositivo configurado com sucesso!</h2>
             <p className="text-sm text-muted-foreground mb-8 max-w-xs">
-              O Computador de Bordo <strong className="text-foreground">{deviceId}</strong> está vinculado ao veículo <strong className="text-foreground">{vinculado?.dispositivo?.veiculo_nome || ""}</strong> e pronto para uso.
+              O Computador de Bordo <strong className="text-foreground">{deviceId}</strong> está vinculado ao ativo <strong className="text-foreground">{vinculado?.dispositivo?.ativo_nome || ""}</strong> e pronto para uso.
             </p>
             <button onClick={() => navigate("/admin")} className="w-full max-w-xs py-3.5 rounded-xl bg-primary text-white font-bold">
               Fechar

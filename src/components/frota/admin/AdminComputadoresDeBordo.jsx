@@ -15,7 +15,7 @@ export default function AdminComputadoresDeBordo() {
     try {
       const [disps, vets] = await Promise.all([
         base44.entities.ComputadorDeBordo.list(),
-        base44.entities.Veiculo.list()
+        base44.entities.Ativo.list()
       ]);
       setDispositivos(disps);
       setVeiculos(vets);
@@ -31,7 +31,7 @@ export default function AdminComputadoresDeBordo() {
 
   function veiculoNome(id) {
     const v = veiculos.find((x) => x.id === id);
-    return v ? v.nome : "Veículo removido";
+    return v ? v.nome : "Ativo removido";
   }
 
   return (
@@ -42,7 +42,7 @@ export default function AdminComputadoresDeBordo() {
 
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
         <p className="text-xs text-blue-700">
-          💡 Cada Computador de Bordo é vinculado a um veículo. O <strong>device_id</strong> deve ser o mesmo gravado no firmware do ESP32.
+          💡 Cada Computador de Bordo é vinculado a um ativo. O <strong>device_id</strong> deve ser o mesmo gravado no firmware do ESP32.
         </p>
       </div>
 
@@ -60,7 +60,7 @@ export default function AdminComputadoresDeBordo() {
                 </div>
                 <div className="min-w-0">
                   <p className="font-semibold text-sm truncate">{d.device_id}</p>
-                  <p className="text-xs text-muted-foreground truncate">{d.nome || veiculoNome(d.veiculo_id)}</p>
+                  <p className="text-xs text-muted-foreground truncate">{d.nome || veiculoNome(d.ativo_id)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
@@ -139,7 +139,7 @@ function ModalQRCode({ dispositivo, onClose }) {
 function FormDispositivo({ dispositivo, veiculos, onClose, onSalvo }) {
   const [form, setForm] = useState({
     device_id: dispositivo.device_id || "",
-    veiculo_id: dispositivo.veiculo_id || "",
+    ativo_id: dispositivo.ativo_id || "",
     nome: dispositivo.nome || "",
     ativo: dispositivo.ativo !== false,
     notas: dispositivo.notas || ""
@@ -147,21 +147,20 @@ function FormDispositivo({ dispositivo, veiculos, onClose, onSalvo }) {
   const [salvando, setSalvando] = useState(false);
 
   async function salvar() {
-    if (!form.device_id.trim() || !form.veiculo_id) {
-      alert("Device ID e Veículo são obrigatórios");
+    if (!form.device_id.trim() || !form.ativo_id) {
+      alert("Device ID e Ativo são obrigatórios");
       return;
     }
     setSalvando(true);
     try {
-      const veiculo = veiculos.find((v) => v.id === form.veiculo_id);
+      const veiculo = veiculos.find((v) => v.id === form.ativo_id);
       const dados = {
         ...form,
-        veiculo_nome: veiculo?.nome || ""
+        ativo_nome: veiculo?.nome || ""
       };
       if (dispositivo.id) {
         await base44.entities.ComputadorDeBordo.update(dispositivo.id, dados);
       } else {
-        // Verifica se já existe device_id igual
         const existentes = await base44.entities.ComputadorDeBordo.filter({ device_id: form.device_id });
         if (existentes.length > 0) {
           alert(`Já existe um dispositivo com device_id "${form.device_id}"`);
@@ -188,8 +187,8 @@ function FormDispositivo({ dispositivo, veiculos, onClose, onSalvo }) {
             <p className="text-[10px] text-muted-foreground mt-1">Identificador único gravado no firmware do ESP32</p>
           </div>
           <div>
-            <label className="text-xs font-semibold text-muted-foreground">Veículo Vinculado *</label>
-            <select value={form.veiculo_id} onChange={(e) => setForm({ ...form, veiculo_id: e.target.value })} className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none">
+            <label className="text-xs font-semibold text-muted-foreground">Ativo Vinculado *</label>
+            <select value={form.ativo_id} onChange={(e) => setForm({ ...form, ativo_id: e.target.value })} className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none">
               <option value="">Selecione...</option>
               {veiculos.map((v) => <option key={v.id} value={v.id}>{v.nome}</option>)}
             </select>

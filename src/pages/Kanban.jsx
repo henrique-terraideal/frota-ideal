@@ -36,7 +36,7 @@ export default function Kanban() {
 
   function filtrar(p) {
     if (filtroTipo && p.tipo !== filtroTipo) return false;
-    if (filtroVeiculo && p.veiculo_id !== filtroVeiculo) return false;
+    if (filtroVeiculo && p.ativo_id !== filtroVeiculo) return false;
     return true;
   }
 
@@ -104,7 +104,7 @@ export default function Kanban() {
               ))}
             </div>
             <div className="flex gap-2 overflow-x-auto pb-1">
-              <button onClick={() => setFiltroVeiculo(null)} className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${!filtroVeiculo ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>Todos os veículos</button>
+              <button onClick={() => setFiltroVeiculo(null)} className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${!filtroVeiculo ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>Todos os ativos</button>
               {veiculos.map((v) => (
                 <button key={v.id} onClick={() => setFiltroVeiculo(filtroVeiculo === v.id ? null : v.id)} className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${filtroVeiculo === v.id ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>{v.nome}</button>
               ))}
@@ -147,7 +147,7 @@ export default function Kanban() {
                                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${PRIORIDADE[p.prioridade]?.cor || ""}`}>{PRIORIDADE[p.prioridade]?.label || ""}</span>
                                   </div>
                                   <p className="text-sm font-semibold leading-tight">{p.titulo}</p>
-                                  {p.veiculo_nome && <p className="text-xs text-muted-foreground mt-1">{p.veiculo_nome}</p>}
+                                  {p.ativo_nome && <p className="text-xs text-muted-foreground mt-1">{p.ativo_nome}</p>}
                                   {p.responsavel_nome && (
                                     <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
                                       <User className="w-3 h-3" /> {p.responsavel_nome}
@@ -214,7 +214,7 @@ function CardDetail({ card, motorista, onClose, onSave }) {
 
         <span className={`inline-block text-xs px-2 py-1 rounded-full border mb-3 ${TIPOS_PENDENCIA[card.tipo]?.cor || ""}`}>{TIPOS_PENDENCIA[card.tipo]?.label || card.tipo}</span>
         <h3 className="font-bold text-base mb-1">{card.titulo}</h3>
-        {card.veiculo_nome && <p className="text-sm text-muted-foreground mb-4">{card.veiculo_nome}</p>}
+        {card.ativo_nome && <p className="text-sm text-muted-foreground mb-4">{card.ativo_nome}</p>}
 
         <label className="text-xs font-semibold text-muted-foreground">Responsável</label>
         <input value={responsavel} onChange={(e) => setResponsavel(e.target.value)} placeholder="Defina um responsável" className="w-full border border-border rounded-xl px-3 py-2.5 text-sm mb-3 focus:border-primary outline-none" />

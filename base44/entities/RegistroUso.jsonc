@@ -2,30 +2,30 @@
   "name": "RegistroUso",
   "type": "object",
   "properties": {
-    "veiculo_id": {
+    "ativo_id": {
       "type": "string",
-      "title": "Ve\u00edculo"
+      "title": "Ativo"
     },
-    "motorista_id": {
+    "operador_id": {
       "type": "string",
-      "title": "Motorista"
+      "title": "Operador"
     },
-    "motorista_nome": {
+    "operador_nome": {
       "type": "string",
-      "title": "Nome do Motorista"
+      "title": "Nome do Operador"
     },
-    "veiculo_nome": {
+    "ativo_nome": {
       "type": "string",
-      "title": "Nome do Ve\u00edculo"
+      "title": "Nome do Ativo"
     },
     "data_hora_inicio": {
       "type": "string",
       "format": "date-time",
       "title": "Data/Hora de In\u00edcio"
     },
-    "odometro_registrado": {
+    "leitura_uso": {
       "type": "number",
-      "title": "Od\u00f4metro Registrado (km)"
+      "title": "Leitura de Uso Registrada"
     },
     "origem": {
       "type": "string",
@@ -51,8 +51,8 @@
     }
   },
   "required": [
-    "veiculo_id",
-    "motorista_id",
+    "ativo_id",
+    "operador_id",
     "data_hora_inicio",
     "origem"
   ]

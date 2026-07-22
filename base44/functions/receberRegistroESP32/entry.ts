@@ -27,21 +27,21 @@ Deno.serve(async (req) => {
       return Response.json({ status: "erro", mensagem: `Dispositivo inativo: ${device_id}` }, { status: 400 });
     }
 
-    // Busca o veículo vinculado
-    const veiculo = await base44.asServiceRole.entities.Veiculo.get(dispositivo.veiculo_id);
-    if (!veiculo) {
-      return Response.json({ status: "erro", mensagem: "Veículo vinculado ao dispositivo não encontrado" }, { status: 400 });
+    // Busca o ativo vinculado
+    const ativo = await base44.asServiceRole.entities.Ativo.get(dispositivo.ativo_id);
+    if (!ativo) {
+      return Response.json({ status: "erro", mensagem: "Ativo vinculado ao dispositivo não encontrado" }, { status: 400 });
     }
 
-    // 2. Identifica o motorista pelo condutor_codigo (codigo_bordo) na entidade Motorista
-    const motoristas = await base44.asServiceRole.entities.Motorista.filter({ ativo: true });
-    const motorista = motoristas.find((m) => String(m.codigo_bordo) === String(condutor_codigo));
-    if (!motorista) {
-      return Response.json({ status: "erro", mensagem: `Motorista não encontrado com código: ${condutor_codigo}` }, { status: 400 });
+    // 2. Identifica o operador pelo condutor_codigo (codigo_bordo) na entidade Operador
+    const operadores = await base44.asServiceRole.entities.Operador.filter({ ativo: true });
+    const operador = operadores.find((o) => String(o.codigo_bordo) === String(condutor_codigo));
+    if (!operador) {
+      return Response.json({ status: "erro", mensagem: `Operador não encontrado com código: ${condutor_codigo}` }, { status: 400 });
     }
 
     const dataHoraISO = parseDataHoraBR(datahora);
-    const odometroNum = Number(odometro) || 0;
+    const leituraNum = Number(odometro) || 0;
 
     // Processa checklist — array de { pergunta_id, pergunta_texto, resposta }
     const respostas = Array.isArray(checklist) ? checklist : [];
@@ -50,12 +50,12 @@ Deno.serve(async (req) => {
 
     // 3. Cria o registro de uso
     const registro = await base44.asServiceRole.entities.RegistroUso.create({
-      veiculo_id: veiculo.id,
-      motorista_id: motorista.id,
-      motorista_nome: motorista.nome,
-      veiculo_nome: veiculo.nome,
+      ativo_id: ativo.id,
+      operador_id: operador.id,
+      operador_nome: operador.nome,
+      ativo_nome: ativo.nome,
       data_hora_inicio: dataHoraISO,
-      odometro_registrado: odometroNum,
+      leitura_uso: leituraNum,
       origem: "computador_de_bordo",
       checklist_completo: true,
       tem_anomalia: temAnomalia,
@@ -83,10 +83,10 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.Pendencia.create({
           titulo: `Anomalia: ${anomalia.pergunta_texto || "Checklist"}`,
           tipo: "anomalia",
-          veiculo_id: veiculo.id,
-          veiculo_nome: veiculo.nome,
+          ativo_id: ativo.id,
+          ativo_nome: ativo.nome,
           status: "aberto",
-          descricao: `Anomalia reportada por ${motorista.nome} via Computador de Bordo em ${datahora}. Pergunta: "${anomalia.pergunta_texto || ""}"`,
+          descricao: `Anomalia reportada por ${operador.nome} via Computador de Bordo em ${datahora}. Pergunta: "${anomalia.pergunta_texto || ""}"`,
           referencia_id: registro.id,
           prioridade: "media"
         });
@@ -94,11 +94,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 6. Atualiza tempo de uso do veículo apenas para unidades com medidor físico
-    const unidade = veiculo.unidade_tempo_uso || "km";
-    if (unidade !== "idade_dias" && odometroNum > (veiculo.odometro_atual || 0)) {
-      await base44.asServiceRole.entities.Veiculo.update(veiculo.id, {
-        odometro_atual: odometroNum
+    // 6. Atualiza leitura de uso do ativo apenas para unidades com medidor físico
+    const unidade = ativo.unidade_tempo_uso || "km";
+    if (unidade !== "idade_dias" && leituraNum > (ativo.odometro_atual || 0)) {
+      await base44.asServiceRole.entities.Ativo.update(ativo.id, {
+        odometro_atual: leituraNum
       });
     }
 
@@ -111,8 +111,8 @@ Deno.serve(async (req) => {
     return Response.json({
       status: "ok",
       registro_id: registro.id,
-      veiculo: veiculo.nome,
-      condutor: motorista.nome,
+      veiculo: ativo.nome,
+      condutor: operador.nome,
       anomalias: anomalias.length,
       pendencias_criadas: pendenciasCriadas
     });

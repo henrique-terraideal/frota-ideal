@@ -102,7 +102,7 @@ export default function Perfil() {
             <label className="text-xs font-semibold text-muted-foreground">Papel</label>
             <div className="mt-1">
               <span className={`text-xs px-2 py-1 rounded-full ${user?.role === "admin" ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>
-                {user?.role === "admin" ? "Administrador" : "Motorista"}
+                {user?.role === "admin" ? "Administrador" : "Operador"}
               </span>
             </div>
             <p className="text-[10px] text-muted-foreground mt-1">Definido pelo administrador do sistema</p>

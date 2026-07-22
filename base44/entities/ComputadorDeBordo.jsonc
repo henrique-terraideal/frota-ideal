@@ -7,13 +7,13 @@
       "title": "Device ID",
       "description": "Identificador \u00fanico gravado no firmware. Ex: BORDO-001"
     },
-    "veiculo_id": {
+    "ativo_id": {
       "type": "string",
-      "title": "Ve\u00edculo Vinculado"
+      "title": "Ativo Vinculado"
     },
-    "veiculo_nome": {
+    "ativo_nome": {
       "type": "string",
-      "title": "Nome do Ve\u00edculo"
+      "title": "Nome do Ativo"
     },
     "nome": {
       "type": "string",
@@ -42,6 +42,6 @@
   },
   "required": [
     "device_id",
-    "veiculo_id"
+    "ativo_id"
   ]
 }

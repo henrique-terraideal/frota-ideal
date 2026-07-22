@@ -14,8 +14,8 @@ export default function VeiculoChecklist({ veiculoId, veiculo, onVersaoAlterada 
     setLoading(true);
     try {
       const [data, vets] = await Promise.all([
-        base44.entities.ChecklistItem.filter({ veiculo_id: veiculoId }),
-        base44.entities.Veiculo.list()
+        base44.entities.ChecklistItem.filter({ ativo_id: veiculoId }),
+        base44.entities.Ativo.list()
       ]);
       setItens(data.sort((a, b) => (a.ordem || 0) - (b.ordem || 0)));
       setVeiculos(vets);
@@ -26,7 +26,7 @@ export default function VeiculoChecklist({ veiculoId, veiculo, onVersaoAlterada 
 
   async function incrementarVersao() {
     const novaVersao = (veiculo?.versao_checklist || 1) + 1;
-    await base44.entities.Veiculo.update(veiculoId, { versao_checklist: novaVersao });
+    await base44.entities.Ativo.update(veiculoId, { versao_checklist: novaVersao });
     onVersaoAlterada?.(novaVersao);
   }
 
@@ -35,7 +35,7 @@ export default function VeiculoChecklist({ veiculoId, veiculo, onVersaoAlterada 
     try {
       const ordem = itens.length > 0 ? Math.max(...itens.map((i) => i.ordem || 0)) + 1 : 1;
       await base44.entities.ChecklistItem.create({
-        veiculo_id: veiculoId,
+        ativo_id: veiculoId,
         pergunta: novo.trim(),
         ativo: true,
         ordem,
@@ -78,20 +78,20 @@ export default function VeiculoChecklist({ veiculoId, veiculo, onVersaoAlterada 
 
   async function duplicarDe(origemId) {
     if (!origemId || origemId === veiculoId) {
-      alert("Selecione um veículo de origem diferente do atual");
+      alert("Selecione um ativo de origem diferente do atual");
       return;
     }
-    if (!confirm("Duplicar substitui o checklist atual deste veículo. Continuar?")) return;
+    if (!confirm("Duplicar substitui o checklist atual deste ativo. Continuar?")) return;
     try {
-      const atuais = await base44.entities.ChecklistItem.filter({ veiculo_id: veiculoId });
+      const atuais = await base44.entities.ChecklistItem.filter({ ativo_id: veiculoId });
       if (atuais.length > 0) {
-        await base44.entities.ChecklistItem.deleteMany({ veiculo_id: veiculoId });
+        await base44.entities.ChecklistItem.deleteMany({ ativo_id: veiculoId });
       }
-      const origem = await base44.entities.ChecklistItem.filter({ veiculo_id: origemId });
+      const origem = await base44.entities.ChecklistItem.filter({ ativo_id: origemId });
       if (origem.length > 0) {
         await base44.entities.ChecklistItem.bulkCreate(
           origem.sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map((item) => ({
-            veiculo_id: veiculoId,
+            ativo_id: veiculoId,
             pergunta: item.pergunta,
             ativo: item.ativo,
             ordem: item.ordem || 1,
@@ -119,7 +119,7 @@ export default function VeiculoChecklist({ veiculoId, veiculo, onVersaoAlterada 
         <button onClick={adicionar} className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center flex-shrink-0"><Plus className="w-5 h-5 text-white" /></button>
       </div>
 
-      <p className="text-xs text-muted-foreground px-1">As perguntas ativas aparecem no Computador de Bordo deste veículo.</p>
+      <p className="text-xs text-muted-foreground px-1">As perguntas ativas aparecem no Computador de Bordo deste ativo.</p>
 
       {loading ? (
         <div className="flex justify-center py-10"><div className="w-7 h-7 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>
@@ -127,7 +127,7 @@ export default function VeiculoChecklist({ veiculoId, veiculo, onVersaoAlterada 
         <div className="flex flex-col items-center justify-center py-10 text-center">
           <ClipboardCheck className="w-10 h-10 text-muted-foreground/30 mb-2" />
           <p className="text-sm text-muted-foreground">Nenhuma pergunta cadastrada</p>
-          <p className="text-xs text-muted-foreground/70 mt-1">Adicione acima ou duplique de outro veículo</p>
+          <p className="text-xs text-muted-foreground/70 mt-1">Adicione acima ou duplique de outro ativo</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -163,9 +163,9 @@ function ModalDuplicar({ veiculos, veiculoAtualId, onClose, onConfirm }) {
           <h2 className="font-bold text-lg flex items-center gap-2"><Copy className="w-5 h-5 text-primary" /> Duplicar Checklist</h2>
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><X className="w-4 h-4" /></button>
         </div>
-        <p className="text-sm text-muted-foreground mb-3">Selecione de qual veículo copiar o checklist. As perguntas atuais serão substituídas.</p>
+        <p className="text-sm text-muted-foreground mb-3">Selecione de qual ativo copiar o checklist. As perguntas atuais serão substituídas.</p>
         <select value={origem} onChange={(e) => setOrigem(e.target.value)} className="w-full border border-border rounded-xl px-3 py-2.5 text-sm mb-4 focus:border-primary outline-none">
-          <option value="">Selecione o veículo de origem...</option>
+          <option value="">Selecione o ativo de origem...</option>
           {veiculos.filter((v) => v.id !== veiculoAtualId).map((v) => <option key={v.id} value={v.id}>{v.nome}</option>)}
         </select>
         <button onClick={() => onConfirm(origem)} disabled={!origem} className="w-full py-3.5 rounded-xl bg-primary text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2">

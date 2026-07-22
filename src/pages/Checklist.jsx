@@ -18,7 +18,7 @@ export default function Checklist() {
   useEffect(() => {
     async function loadPerguntas() {
       if (!veiculoSelecionado) return;
-      const items = await base44.entities.ChecklistItem.filter({ veiculo_id: veiculoSelecionado.id, ativo: true });
+      const items = await base44.entities.ChecklistItem.filter({ ativo_id: veiculoSelecionado.id, ativo: true });
       const ordenados = items.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
       setPerguntas(ordenados);
       const respInit = {};
@@ -39,7 +39,7 @@ export default function Checklist() {
 
   async function enviarChecklist() {
     if (!motorista?.id) {
-      setErro("Seu usuário não está vinculado a um motorista. Peça ao administrador para cadastrá-lo.");
+      setErro("Seu usuário não está vinculado a um operador. Peça ao administrador para cadastrá-lo.");
       return;
     }
     setStep("enviando");
@@ -49,12 +49,12 @@ export default function Checklist() {
       const odoNum = parseInt(odometro) || veiculoSelecionado.odometro_atual || 0;
 
       const registro = await base44.entities.RegistroUso.create({
-        veiculo_id: veiculoSelecionado.id,
-        motorista_id: motorista.id,
-        motorista_nome: motorista.nome,
-        veiculo_nome: veiculoSelecionado.nome,
+        ativo_id: veiculoSelecionado.id,
+        operador_id: motorista.id,
+        operador_nome: motorista.nome,
+        ativo_nome: veiculoSelecionado.nome,
         data_hora_inicio: dataHoraISO,
-        odometro_registrado: odoNum,
+        leitura_uso: odoNum,
         origem: "app",
         checklist_completo: true,
         tem_anomalia: temAnomalia,
@@ -70,9 +70,9 @@ export default function Checklist() {
       }));
       await base44.entities.RespostaChecklist.bulkCreate(respostasCriar);
 
-      // Atualiza o tempo de uso do veículo (apenas para unidades com medidor)
+      // Atualiza o tempo de uso do ativo (apenas para unidades com medidor)
       if (!ehIdade && odoNum > (veiculoSelecionado.odometro_atual || 0)) {
-        await base44.entities.Veiculo.update(veiculoSelecionado.id, { odometro_atual: odoNum });
+        await base44.entities.Ativo.update(veiculoSelecionado.id, { odometro_atual: odoNum });
       }
 
       // Cria pendência de anomalia (o workflow também criaria, mas garantimos aqui)
@@ -83,8 +83,8 @@ export default function Checklist() {
           await base44.entities.Pendencia.create({
             titulo: `Anomalia reportada por ${motorista.nome}`,
             tipo: "anomalia",
-            veiculo_id: veiculoSelecionado.id,
-            veiculo_nome: veiculoSelecionado.nome,
+            ativo_id: veiculoSelecionado.id,
+            ativo_nome: veiculoSelecionado.nome,
             status: "aberto",
             descricao: `Itens reprovados no checklist: ${naoRespondidas.join("; ")}`,
             referencia_id: registro.id,
@@ -118,7 +118,7 @@ export default function Checklist() {
         <p className="text-muted-foreground text-sm mb-6 max-w-xs">
           {temAnomalia
             ? "Seu registro foi salvo. Uma pendência de anomalia foi criada no Kanban para o gestor verificar."
-            : "Seu uso do veículo foi registrado com sucesso. Tenha uma boa viagem!"}
+            : "Seu uso do ativo foi registrado com sucesso. Bom trabalho!"}
         </p>
         <button onClick={() => navigate("/")} className="w-full max-w-xs bg-primary text-white font-bold py-3.5 rounded-xl active:scale-[0.98] transition-transform">
           Voltar ao Início
@@ -142,12 +142,12 @@ export default function Checklist() {
       </div>
 
       <div className="px-5 -mt-3">
-        {/* Step: Seleção de veículo */}
+        {/* Step: Seleção de ativo */}
         {step === "veiculo" && (
           <div className="bg-white rounded-2xl shadow-sm border border-border p-4">
-            <h2 className="font-bold text-sm mb-3">Selecione o veículo</h2>
+            <h2 className="font-bold text-sm mb-3">Selecione o ativo</h2>
             {veiculosAtivos.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">Nenhum veículo ativo disponível</p>
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhum ativo ativo disponível</p>
             ) : (
               <div className="space-y-2">
                 {veiculosAtivos.map((v) => (
@@ -241,8 +241,8 @@ export default function Checklist() {
             <div className="bg-white rounded-2xl shadow-sm border border-border p-4">
               <h3 className="font-bold text-xs text-muted-foreground mb-2">Resumo</h3>
               <div className="space-y-1 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">Veículo:</span><span className="font-medium">{veiculoSelecionado.nome}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Motorista:</span><span className="font-medium">{motorista?.nome}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Ativo:</span><span className="font-medium">{veiculoSelecionado.nome}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Operador:</span><span className="font-medium">{motorista?.nome}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Checklist:</span><span className={`font-medium ${temAnomalia ? "text-orange-600" : "text-green-600"}`}>{temAnomalia ? "Com anomalia" : "Tudo OK"}</span></div>
               </div>
             </div>

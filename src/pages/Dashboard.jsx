@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Home, AlertTriangle, Wrench, FileText, Car, TrendingUp, Clock, ChevronRight, User, ClipboardCheck, LayoutGrid } from "lucide-react";
 import { useFrotaData } from "@/hooks/useFrotaData";
-import { formatarDataHoraBR, diasAteVencimento, TIPOS_PENDENCIA, STATUS_VEICULO, formatarMoeda } from "@/lib/frota-constants";
+import { formatarDataHoraBR, diasAteVencimento, TIPOS_PENDENCIA, STATUS_ATIVO, formatarMoeda } from "@/lib/frota-constants";
 
 export default function Dashboard() {
   const { motorista, veiculos, loading } = useFrotaData();
@@ -120,15 +120,15 @@ export default function Dashboard() {
           )}
         </Link>
 
-        {/* Odômetro dos veículos */}
+        {/* Leitura de uso dos ativos */}
         <div className="bg-white rounded-2xl shadow-sm border border-border p-4">
           <div className="flex items-center gap-2 mb-3">
             <Car className="w-4 h-4 text-primary" />
-            <h2 className="font-bold text-sm">Veículos</h2>
+            <h2 className="font-bold text-sm">Ativos</h2>
           </div>
           <div className="space-y-3">
             {veiculos.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-2">Nenhum veículo cadastrado</p>
+              <p className="text-sm text-muted-foreground text-center py-2">Nenhum ativo cadastrado</p>
             ) : (
               veiculos.map((v) => (
                 <Link key={v.id} to={`/frota/${v.id}`} className="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1.5 rounded-lg transition-colors">
@@ -138,12 +138,12 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold">{v.nome}</p>
-                      <p className="text-xs text-muted-foreground">{v.modelo || TIPOS_PENDENCIA[v.tipo]?.label || v.tipo}</p>
+                      <p className="text-xs text-muted-foreground">{v.modelo || v.tipo}</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold tabular-nums">{(v.odometro_atual || 0).toLocaleString("pt-BR")} km</p>
-                    <p className={`text-[10px] ${STATUS_VEICULO[v.status]?.cor || ""} px-1.5 py-0.5 rounded-full inline-block`}>{STATUS_VEICULO[v.status]?.label || v.status}</p>
+                    <p className={`text-[10px] ${STATUS_ATIVO[v.status]?.cor || ""} px-1.5 py-0.5 rounded-full inline-block`}>{STATUS_ATIVO[v.status]?.label || v.status}</p>
                   </div>
                 </Link>
               ))
@@ -163,12 +163,12 @@ export default function Dashboard() {
                 <User className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold">{ultimoRegistro.motorista_nome || "—"}</p>
+                <p className="text-sm font-semibold">{ultimoRegistro.operador_nome || "—"}</p>
                 <p className="text-xs text-muted-foreground">{formatarDataHoraBR(ultimoRegistro.data_hora_inicio)}</p>
               </div>
               <div className="text-right">
-                <p className="text-xs text-muted-foreground">Odômetro</p>
-                <p className="text-sm font-bold tabular-nums">{(ultimoRegistro.odometro_registrado || 0).toLocaleString("pt-BR")} km</p>
+                <p className="text-xs text-muted-foreground">Leitura de Uso</p>
+                <p className="text-sm font-bold tabular-nums">{(ultimoRegistro.leitura_uso || 0).toLocaleString("pt-BR")}</p>
               </div>
             </div>
             {ultimoRegistro.origem === "computador_de_bordo" && (
@@ -181,7 +181,7 @@ export default function Dashboard() {
         <Link to="/checklist" className="block w-full bg-primary text-white rounded-2xl p-4 shadow-md active:scale-[0.98] transition-transform">
           <div className="flex items-center justify-center gap-2">
             <ClipboardCheckIcon />
-            <span className="font-bold text-base">Iniciar Uso do Veículo</span>
+            <span className="font-bold text-base">Iniciar Uso do Ativo</span>
           </div>
           <p className="text-center text-white/80 text-xs mt-1">Checklist de saída em menos de 60 segundos</p>
         </Link>

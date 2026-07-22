@@ -24,14 +24,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Dispositivo inativo: ${deviceId}` }, { status: 400 });
     }
 
-    // Busca o veículo vinculado
-    const veiculo = await base44.asServiceRole.entities.Veiculo.get(dispositivo.veiculo_id);
-    if (!veiculo) {
-      return Response.json({ error: "Veículo vinculado não encontrado" }, { status: 404 });
+    // Busca o ativo vinculado
+    const ativo = await base44.asServiceRole.entities.Ativo.get(dispositivo.ativo_id);
+    if (!ativo) {
+      return Response.json({ error: "Ativo vinculado não encontrado" }, { status: 404 });
     }
 
-    // Busca as perguntas ativas deste veículo, ordenadas por ordem
-    const itens = await base44.asServiceRole.entities.ChecklistItem.filter({ veiculo_id: veiculo.id, ativo: true });
+    // Busca as perguntas ativas deste ativo, ordenadas por ordem
+    const itens = await base44.asServiceRole.entities.ChecklistItem.filter({ ativo_id: ativo.id, ativo: true });
     const perguntas = itens
       .sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
       .map((item) => ({
@@ -41,12 +41,12 @@ Deno.serve(async (req) => {
       }));
 
     return Response.json({
-      versao: veiculo.versao_checklist || 1,
-      veiculo_id: veiculo.id,
-      veiculo_nome: veiculo.nome,
-      unidade_tempo_uso: veiculo.unidade_tempo_uso || "km",
-      tempo_uso_atual: veiculo.odometro_atual || 0,
-      data_aquisicao: veiculo.data_aquisicao || null,
+      versao: ativo.versao_checklist || 1,
+      veiculo_id: ativo.id,
+      veiculo_nome: ativo.nome,
+      unidade_tempo_uso: ativo.unidade_tempo_uso || "km",
+      tempo_uso_atual: ativo.odometro_atual || 0,
+      data_aquisicao: ativo.data_aquisicao || null,
       perguntas
     });
   } catch (error) {

@@ -19,13 +19,13 @@
       ],
       "title": "Tipo"
     },
-    "veiculo_id": {
+    "ativo_id": {
       "type": "string",
-      "title": "Ve\u00edculo"
+      "title": "Ativo"
     },
-    "veiculo_nome": {
+    "ativo_nome": {
       "type": "string",
-      "title": "Nome do Ve\u00edculo"
+      "title": "Nome do Ativo"
     },
     "status": {
       "type": "string",

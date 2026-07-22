@@ -6,12 +6,12 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
     const body = await req.json().catch(() => ({}));
-    const { veiculo_id, veiculo_nome, motorista_id, motorista_nome, data_hora_inicio, registro_id, notas } = body;
+    const { ativo_id, ativo_nome, operador_id, operador_nome, data_hora_inicio, registro_id, notas } = body;
 
-    if (!veiculo_id || !registro_id) {
+    if (!ativo_id || !registro_id) {
       // Se não veio no body, tenta usar trigger data
       const triggerData = body.trigger?.data || {};
-      if (!triggerData.veiculo_id) {
+      if (!triggerData.ativo_id) {
         return Response.json({ success: false, error: "Dados insuficientes" }, { status: 400 });
       }
     }
@@ -26,12 +26,12 @@ Deno.serve(async (req) => {
     }
 
     const pendencia = await base44.asServiceRole.entities.Pendencia.create({
-      titulo: `Anomalia reportada por ${motorista_nome || "Motorista"}`,
+      titulo: `Anomalia reportada por ${operador_nome || "Operador"}`,
       tipo: "anomalia",
-      veiculo_id: veiculo_id,
-      veiculo_nome: veiculo_nome || "",
+      ativo_id: ativo_id,
+      ativo_nome: ativo_nome || "",
       status: "aberto",
-      descricao: `Anomalia detectada no registro de uso de ${motorista_nome || "motorista"} em ${data_hora_inicio || ""}. ${notas || ""}`.trim(),
+      descricao: `Anomalia detectada no registro de uso de ${operador_nome || "operador"} em ${data_hora_inicio || ""}. ${notas || ""}`.trim(),
       referencia_id: registro_id,
       prioridade: "media"
     });

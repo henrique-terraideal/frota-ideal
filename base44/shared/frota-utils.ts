@@ -1,4 +1,4 @@
-// Funções utilitárias compartilhadas entre backend functions da Gestão de Frota
+// Funções utilitárias compartilhadas entre backend functions da Gestão de Patrimônio
 
 // Converte data/hora brasileira "DD/MM/AAAA HH:MM:SS" para ISO string
 export function parseDataHoraBR(dateString) {

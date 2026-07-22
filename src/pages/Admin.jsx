@@ -7,7 +7,7 @@ import AdminComputadoresDeBordo from "@/components/frota/admin/AdminComputadores
 import AdminEsp32 from "@/components/frota/admin/AdminEsp32";
 
 const TABS = [
-  { id: "veiculos", label: "Veículos", icon: Car },
+  { id: "veiculos", label: "Ativos", icon: Car },
   { id: "usuarios", label: "Usuários", icon: Users },
   { id: "checklist", label: "Checklist", icon: ClipboardCheck },
   { id: "dispositivos", label: "Dispositivos", icon: Monitor },
@@ -21,7 +21,7 @@ export default function Admin() {
     <div className="min-h-full">
       <div className="bg-gradient-to-br from-primary to-green-700 text-white px-5 pt-8 pb-6 rounded-b-3xl">
         <h1 className="text-xl font-bold">Painel Administrativo</h1>
-        <p className="text-white/70 text-xs">Gerencie veículos, motoristas, checklist e hardware</p>
+        <p className="text-white/70 text-xs">Gerencie ativos, operadores, checklist e hardware</p>
       </div>
 
       {/* Tabs */}
