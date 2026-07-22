@@ -1,0 +1,59 @@
+{
+  "name": "RegistroUso",
+  "type": "object",
+  "properties": {
+    "veiculo_id": {
+      "type": "string",
+      "title": "Ve\u00edculo"
+    },
+    "motorista_id": {
+      "type": "string",
+      "title": "Motorista"
+    },
+    "motorista_nome": {
+      "type": "string",
+      "title": "Nome do Motorista"
+    },
+    "veiculo_nome": {
+      "type": "string",
+      "title": "Nome do Ve\u00edculo"
+    },
+    "data_hora_inicio": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Data/Hora de In\u00edcio"
+    },
+    "odometro_registrado": {
+      "type": "number",
+      "title": "Od\u00f4metro Registrado (km)"
+    },
+    "origem": {
+      "type": "string",
+      "enum": [
+        "app",
+        "computador_de_bordo"
+      ],
+      "title": "Origem do Registro"
+    },
+    "checklist_completo": {
+      "type": "boolean",
+      "title": "Checklist Completo",
+      "default": false
+    },
+    "tem_anomalia": {
+      "type": "boolean",
+      "title": "Tem Anomalia",
+      "default": false
+    },
+    "notas": {
+      "type": "string",
+      "title": "Observa\u00e7\u00f5es"
+    }
+  },
+  "required": [
+    "veiculo_id",
+    "motorista_id",
+    "data_hora_inicio",
+    "origem"
+  ]
+}

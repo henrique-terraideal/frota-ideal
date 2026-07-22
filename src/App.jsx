@@ -6,6 +6,17 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
+import Layout from '@/components/frota/Layout';
+import Dashboard from '@/pages/Dashboard';
+import Checklist from '@/pages/Checklist';
+import Kanban from '@/pages/Kanban';
+import Registros from '@/pages/Registros';
+import Multas from '@/pages/Multas';
+import Manutencoes from '@/pages/Manutencoes';
+import Frota from '@/pages/Frota';
+import VeiculoDetalhe from '@/pages/VeiculoDetalhe';
+import Admin from '@/pages/Admin';
+import Mais from '@/pages/Mais';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -34,7 +45,18 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
+      <Route element={<Layout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/checklist" element={<Checklist />} />
+        <Route path="/kanban" element={<Kanban />} />
+        <Route path="/registros" element={<Registros />} />
+        <Route path="/multas" element={<Multas />} />
+        <Route path="/manutencoes" element={<Manutencoes />} />
+        <Route path="/frota" element={<Frota />} />
+        <Route path="/frota/:id" element={<VeiculoDetalhe />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/mais" element={<Mais />} />
+      </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

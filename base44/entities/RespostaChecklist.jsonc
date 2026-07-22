@@ -1,0 +1,32 @@
+{
+  "name": "RespostaChecklist",
+  "type": "object",
+  "properties": {
+    "registro_uso_id": {
+      "type": "string",
+      "title": "Registro de Uso"
+    },
+    "checklist_item_id": {
+      "type": "string",
+      "title": "Item do Checklist"
+    },
+    "pergunta_texto": {
+      "type": "string",
+      "title": "Pergunta (snapshot)"
+    },
+    "resposta": {
+      "type": "boolean",
+      "title": "Resposta",
+      "description": "true = Sim, false = N\u00e3o"
+    },
+    "observacao": {
+      "type": "string",
+      "title": "Observa\u00e7\u00e3o do Motorista"
+    }
+  },
+  "required": [
+    "registro_uso_id",
+    "checklist_item_id",
+    "resposta"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "Checklist Gera Pend\u00eancia",
+  "description": "Quando um RegistroUso \u00e9 criado com anomalia (tem_anomalia = true), cria automaticamente uma Pend\u00eancia do tipo anomalia no Kanban.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "RegistroUso",
+      "events": [
+        "create"
+      ]
+    },
+    "condition": "${ .trigger.data.tem_anomalia == true }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "checklist_gera_pendencia",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "criar_pendencia": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "criarPendenciaAnomalia",
+            "args": {
+              "veiculo_id": "${ .trigger.data.veiculo_id }",
+              "veiculo_nome": "${ .trigger.data.veiculo_nome }",
+              "motorista_id": "${ .trigger.data.motorista_id }",
+              "motorista_nome": "${ .trigger.data.motorista_nome }",
+              "data_hora_inicio": "${ .trigger.data.data_hora_inicio }",
+              "registro_id": "${ .trigger.entity_id }",
+              "notas": "${ .trigger.data.notas }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Criar pend\u00eancia de anomalia",
+            "description": "No Kanban"
+          }
+        }
+      }
+    ]
+  }
+}
