@@ -158,7 +158,7 @@ function FormMulta({ veiculos, onClose, onSalvo }) {
               {processando ? <Loader2 className="w-8 h-8 text-primary animate-spin" /> : <Camera className="w-8 h-8 text-muted-foreground" />}
               <p className="text-sm text-muted-foreground mt-2">Tirar foto ou escolher imagem</p>
               <p className="text-xs text-muted-foreground/70">IA vai extrair os dados automaticamente</p>
-              <input type="file" accept="image/*" capture="environment" onChange={handleUpload} className="hidden" />
+              <input type="file" accept="image/*" capture="environment" onChange={handleUpload} className="sr-only" />
             </label>
           )}
         </div>
