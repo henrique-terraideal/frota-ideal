@@ -57,7 +57,7 @@ export default function AdminVeiculos() {
   );
 }
 
-function FormVeiculo({ veiculo, onClose, onSalvo }) {
+export function FormVeiculo({ veiculo, onClose, onSalvo }) {
   const [form, setForm] = useState({
     nome: veiculo.nome || "",
     tipo: veiculo.tipo || "carro",

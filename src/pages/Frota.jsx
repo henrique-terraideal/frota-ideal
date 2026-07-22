@@ -4,10 +4,18 @@ import { base44 } from "@/api/base44Client";
 import { Car, ChevronLeft, Gauge, FileText, Wrench, Receipt, Calendar, Settings, Plus, Edit3, X, Check } from "lucide-react";
 import { useFrotaData, isGestorOuAdmin } from "@/hooks/useFrotaData";
 import { formatarDataBR, formatarDataHoraBR, diasAteVencimento, formatarMoeda, STATUS_MULTA, STATUS_MANUTENCAO, TIPOS_MANUTENCAO, TIPOS_ATIVO, STATUS_ATIVO, UNIDADES_TEMPO_USO, tempoUsoAtual, infoUnidadeUso } from "@/lib/frota-constants";
+import { FormVeiculo } from "@/components/frota/admin/AdminVeiculos";
 
 export default function Frota() {
-  const { veiculos, loading } = useFrotaData();
-  const [modo, setModo] = useState("lista");
+  const { veiculos, loading, motorista, setAtivos } = useFrotaData();
+  const [mostrarForm, setMostrarForm] = useState(false);
+  const ehAdmin = isGestorOuAdmin(motorista);
+
+  async function recarregar() {
+    try {
+      setAtivos(await base44.entities.Ativo.list());
+    } catch (e) { console.error(e); }
+  }
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
@@ -20,10 +28,15 @@ export default function Frota() {
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <Car className="w-5 h-5 text-primary" />
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl font-bold">Patrimônio</h1>
             <p className="text-xs text-muted-foreground">{veiculos.length} ativo(s)</p>
           </div>
+          {ehAdmin && (
+            <button onClick={() => setMostrarForm(true)} className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center" title="Cadastrar Ativo">
+              <Plus className="w-5 h-5 text-white" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -32,11 +45,16 @@ export default function Frota() {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Car className="w-12 h-12 text-muted-foreground/30 mb-3" />
             <p className="text-sm text-muted-foreground">Nenhum ativo cadastrado</p>
+            {ehAdmin && (
+              <button onClick={() => setMostrarForm(true)} className="mt-4 text-primary text-sm font-medium">Cadastrar primeiro ativo</button>
+            )}
           </div>
         ) : (
           veiculos.map((v) => <VeiculoCard key={v.id} veiculo={v} />)
         )}
       </div>
+
+      {mostrarForm && <FormVeiculo veiculo={{}} onClose={() => setMostrarForm(false)} onSalvo={() => { setMostrarForm(false); recarregar(); }} />}
     </div>
   );
 }
