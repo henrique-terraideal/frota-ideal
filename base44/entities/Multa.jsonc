@@ -59,8 +59,7 @@
     "fonte": {
       "type": "string",
       "enum": [
-        "foto_manual",
-        "detran_automatico"
+        "foto_manual"
       ],
       "title": "Fonte",
       "default": "foto_manual"
@@ -77,6 +76,11 @@
       "type": "string",
       "format": "date",
       "title": "Data de Pagamento"
+    },
+    "observacao_pagamento": {
+      "type": "string",
+      "title": "Observa\u00e7\u00e3o de Pagamento",
+      "description": "Anota\u00e7\u00e3o livre sobre como o pagamento foi realizado"
     }
   },
   "required": [

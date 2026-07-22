@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
               veiculo_id: veiculo.id,
               veiculo_nome: veiculo.nome,
               status: "aberto",
-              descricao: `Vencimento do licenciamento em ${formatarDataBR(veiculo.data_licenciamento)} (${dias} dias). Renove junto ao Detran.`,
+              descricao: `Vencimento do licenciamento em ${formatarDataBR(veiculo.data_licenciamento)} (${dias} dias). Renove o licenciamento.`,
               data_limite: veiculo.data_licenciamento,
               prioridade: dias <= 7 ? "alta" : "media"
             });
