@@ -16,7 +16,13 @@ export function useFrotaData() {
           base44.entities.Veiculo.list()
         ]);
         const meuMotorista = motoristasData.find((m) => m.user_id === user.id) || null;
-        setMotorista(meuMotorista || { nome: user.full_name, permissao: "motorista", user_id: user.id, id: null });
+        if (meuMotorista) {
+          setMotorista(meuMotorista);
+        } else {
+          // Sem registro de motorista: admin do Base44 vira administrador, demais viram motorista
+          const permissaoFallback = user.role === "admin" ? "administrador" : "motorista";
+          setMotorista({ nome: user.full_name, permissao: permissaoFallback, user_id: user.id, id: null });
+        }
         setVeiculos(veiculosData);
       } catch (e) {
         console.error("Erro ao carregar dados da frota:", e);
