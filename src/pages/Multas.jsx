@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Receipt, Plus, Camera, X, Calendar, User, DollarSign, FileText, Loader2, CreditCard } from "lucide-react";
 import { useFrotaData, isGestorOuAdmin } from "@/hooks/useFrotaData";
@@ -99,6 +99,7 @@ function FormMulta({ veiculos, onClose, onSalvo }) {
   const [fotoUrl, setFotoUrl] = useState(null);
   const [processando, setProcessando] = useState(false);
   const [erro, setErro] = useState("");
+  const fileInputRef = useRef(null);
 
   async function handleUpload(e) {
     const file = e.target.files[0];
@@ -154,13 +155,17 @@ function FormMulta({ veiculos, onClose, onSalvo }) {
               <button onClick={() => setFotoUrl(null)} className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 flex items-center justify-center"><X className="w-4 h-4 text-white" /></button>
             </div>
           ) : (
-            <label className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl py-8 cursor-pointer hover:bg-muted/30">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl py-8 cursor-pointer hover:bg-muted/30 w-full"
+            >
               {processando ? <Loader2 className="w-8 h-8 text-primary animate-spin" /> : <Camera className="w-8 h-8 text-muted-foreground" />}
               <p className="text-sm text-muted-foreground mt-2">Tirar foto ou escolher imagem</p>
               <p className="text-xs text-muted-foreground/70">IA vai extrair os dados automaticamente</p>
-              <input type="file" accept="image/*" capture="environment" onChange={handleUpload} className="sr-only" />
-            </label>
+            </button>
           )}
+          <input type="file" accept="image/*" ref={fileInputRef} onChange={handleUpload} className="hidden" />
         </div>
 
         {fotoUrl && (
