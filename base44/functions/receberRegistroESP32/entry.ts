@@ -33,9 +33,9 @@ Deno.serve(async (req) => {
       return Response.json({ status: "erro", mensagem: "Veículo vinculado ao dispositivo não encontrado" }, { status: 400 });
     }
 
-    // 2. Identifica o usuário (motorista) pelo condutor_codigo (codigo_bordo)
-    const usuarios = await base44.asServiceRole.entities.User.list();
-    const motorista = usuarios.find((u) => String(u.codigo_bordo) === String(condutor_codigo));
+    // 2. Identifica o motorista pelo condutor_codigo (codigo_bordo) na entidade Motorista
+    const motoristas = await base44.asServiceRole.entities.Motorista.filter({ ativo: true });
+    const motorista = motoristas.find((m) => String(m.codigo_bordo) === String(condutor_codigo));
     if (!motorista) {
       return Response.json({ status: "erro", mensagem: `Motorista não encontrado com código: ${condutor_codigo}` }, { status: 400 });
     }
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     const registro = await base44.asServiceRole.entities.RegistroUso.create({
       veiculo_id: veiculo.id,
       motorista_id: motorista.id,
-      motorista_nome: motorista.full_name || motorista.email,
+      motorista_nome: motorista.nome,
       veiculo_nome: veiculo.nome,
       data_hora_inicio: dataHoraISO,
       odometro_registrado: odometroNum,
@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
           veiculo_id: veiculo.id,
           veiculo_nome: veiculo.nome,
           status: "aberto",
-          descricao: `Anomalia reportada por ${motorista.full_name || motorista.email} via Computador de Bordo em ${datahora}. Pergunta: "${anomalia.pergunta_texto || ""}"`,
+          descricao: `Anomalia reportada por ${motorista.nome} via Computador de Bordo em ${datahora}. Pergunta: "${anomalia.pergunta_texto || ""}"`,
           referencia_id: registro.id,
           prioridade: "media"
         });
@@ -94,8 +94,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 6. Atualiza odômetro do veículo se enviado e maior que o atual
-    if (odometroNum > (veiculo.odometro_atual || 0)) {
+    // 6. Atualiza tempo de uso do veículo apenas para unidades com medidor físico
+    const unidade = veiculo.unidade_tempo_uso || "km";
+    if (unidade !== "idade_dias" && odometroNum > (veiculo.odometro_atual || 0)) {
       await base44.asServiceRole.entities.Veiculo.update(veiculo.id, {
         odometro_atual: odometroNum
       });
@@ -111,7 +112,7 @@ Deno.serve(async (req) => {
       status: "ok",
       registro_id: registro.id,
       veiculo: veiculo.nome,
-      condutor: motorista.full_name || motorista.email,
+      condutor: motorista.nome,
       anomalias: anomalias.length,
       pendencias_criadas: pendenciasCriadas
     });

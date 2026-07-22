@@ -44,6 +44,9 @@ Deno.serve(async (req) => {
       versao: veiculo.versao_checklist || 1,
       veiculo_id: veiculo.id,
       veiculo_nome: veiculo.nome,
+      unidade_tempo_uso: veiculo.unidade_tempo_uso || "km",
+      tempo_uso_atual: veiculo.odometro_atual || 0,
+      data_aquisicao: veiculo.data_aquisicao || null,
       perguntas
     });
   } catch (error) {
