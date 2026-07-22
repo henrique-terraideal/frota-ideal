@@ -16,7 +16,8 @@ export default function Checklist() {
 
   useEffect(() => {
     async function loadPerguntas() {
-      const items = await base44.entities.ChecklistItem.filter({ ativo: true });
+      if (!veiculoSelecionado) return;
+      const items = await base44.entities.ChecklistItem.filter({ veiculo_id: veiculoSelecionado.id, ativo: true });
       const ordenados = items.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
       setPerguntas(ordenados);
       const respInit = {};
@@ -24,7 +25,7 @@ export default function Checklist() {
       setRespostas(respInit);
     }
     loadPerguntas();
-  }, []);
+  }, [veiculoSelecionado]);
 
   const veiculosAtivos = veiculos.filter((v) => v.status === "ativo");
 
