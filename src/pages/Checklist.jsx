@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { ClipboardCheck, Check, X, Gauge, AlertCircle, CheckCircle2, Car } from "lucide-react";
 import { useFrotaData } from "@/hooks/useFrotaData";
+import { UNIDADES_TEMPO_USO, formatarTempoUso } from "@/lib/frota-constants";
 
 export default function Checklist() {
   const { motorista, veiculos, loading } = useFrotaData();
@@ -31,6 +32,10 @@ export default function Checklist() {
 
   const temAnomalia = Object.values(respostas).some((r) => r === false);
   const todasRespondidas = Object.values(respostas).every((r) => r !== null) && perguntas.length > 0;
+
+  const unidade = veiculoSelecionado?.unidade_tempo_uso || "km";
+  const ehIdade = unidade === "idade_dias";
+  const infoUnidade = UNIDADES_TEMPO_USO[unidade];
 
   async function enviarChecklist() {
     if (!motorista?.id) {
@@ -65,8 +70,8 @@ export default function Checklist() {
       }));
       await base44.entities.RespostaChecklist.bulkCreate(respostasCriar);
 
-      // Atualiza odômetro do veículo
-      if (odoNum > (veiculoSelecionado.odometro_atual || 0)) {
+      // Atualiza o tempo de uso do veículo (apenas para unidades com medidor)
+      if (!ehIdade && odoNum > (veiculoSelecionado.odometro_atual || 0)) {
         await base44.entities.Veiculo.update(veiculoSelecionado.id, { odometro_atual: odoNum });
       }
 
@@ -156,7 +161,7 @@ export default function Checklist() {
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold text-sm">{v.nome}</p>
-                      <p className="text-xs text-muted-foreground">{v.modelo || v.tipo} • {(v.odometro_atual || 0).toLocaleString("pt-BR")} km</p>
+                      <p className="text-xs text-muted-foreground">{v.modelo || v.tipo} • {formatarTempoUso(v)}</p>
                     </div>
                   </button>
                 ))}
@@ -200,23 +205,26 @@ export default function Checklist() {
             )}
 
             <button
-              onClick={() => todasRespondidas ? setStep("odometro") : setErro("Responda todas as perguntas")}
+              onClick={() => {
+                if (!todasRespondidas) { setErro("Responda todas as perguntas"); return; }
+                if (ehIdade) { enviarChecklist(); } else { setStep("odometro"); }
+              }}
               disabled={!todasRespondidas}
               className={`w-full py-4 rounded-2xl font-bold text-base transition-all ${todasRespondidas ? "bg-primary text-white active:scale-[0.98]" : "bg-muted text-muted-foreground"}`}
             >
-              Continuar
+              {ehIdade ? "Confirmar e Registrar" : "Continuar"}
             </button>
             {erro && <p className="text-xs text-red-500 text-center">{erro}</p>}
           </div>
         )}
 
-        {/* Step: Odômetro */}
+        {/* Step: Medidor (Odômetro / Horímetro / Ciclos) */}
         {step === "odometro" && (
           <div className="space-y-4">
             <div className="bg-white rounded-2xl shadow-sm border border-border p-5">
               <div className="flex items-center gap-2 mb-4">
                 <Gauge className="w-5 h-5 text-primary" />
-                <h2 className="font-bold text-sm">Odômetro Atual</h2>
+                <h2 className="font-bold text-sm">{infoUnidade.passo}</h2>
               </div>
               <input
                 type="number"
@@ -227,7 +235,7 @@ export default function Checklist() {
                 className="w-full text-center text-3xl font-bold tabular-nums border-2 border-border rounded-xl py-4 focus:border-primary outline-none"
                 autoFocus
               />
-              <p className="text-xs text-muted-foreground text-center mt-2">Informe a quilometragem atual do painel</p>
+              <p className="text-xs text-muted-foreground text-center mt-2">{infoUnidade.pergunta}</p>
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-border p-4">

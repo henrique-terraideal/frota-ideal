@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { ChevronLeft, Car, Gauge, Receipt, Wrench, ClipboardList, Calendar, CheckCircle2, Cpu, Smartphone, ClipboardCheck, Repeat, Copy, X, Loader2, Check } from "lucide-react";
-import { formatarDataBR, formatarDataHoraBR, formatarMoeda, STATUS_MULTA, STATUS_MANUTENCAO, TIPOS_MANUTENCAO, TIPOS_VEICULO } from "@/lib/frota-constants";
+import { formatarDataBR, formatarDataHoraBR, formatarMoeda, STATUS_MULTA, STATUS_MANUTENCAO, TIPOS_MANUTENCAO, TIPOS_VEICULO, UNIDADES_TEMPO_USO, tempoUsoAtual } from "@/lib/frota-constants";
 import VeiculoChecklist from "@/components/frota/VeiculoChecklist";
 import VeiculoPlanos from "@/components/frota/VeiculoPlanos";
 
@@ -75,8 +75,8 @@ export default function VeiculoDetalhe() {
         <div className="bg-white rounded-2xl shadow-sm border border-border p-4 grid grid-cols-3 gap-2 text-center">
           <div>
             <Gauge className="w-5 h-5 text-primary mx-auto mb-1" />
-            <p className="text-sm font-bold">{(veiculo.odometro_atual || 0).toLocaleString("pt-BR")}</p>
-            <p className="text-[10px] text-muted-foreground">km atual</p>
+            <p className="text-sm font-bold">{tempoUsoAtual(veiculo).toLocaleString("pt-BR")}</p>
+            <p className="text-[10px] text-muted-foreground">{(UNIDADES_TEMPO_USO[veiculo.unidade_tempo_uso || "km"]?.label || "km")} atual</p>
           </div>
           <div>
             <Receipt className="w-5 h-5 text-primary mx-auto mb-1" />

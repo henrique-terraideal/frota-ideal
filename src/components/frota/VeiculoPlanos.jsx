@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Plus, Trash2, X, Check, Calendar, Gauge, Edit3, Repeat } from "lucide-react";
-import { TIPOS_MANUTENCAO, UNIDADES_TEMPO, formatarDataBR } from "@/lib/frota-constants";
+import { TIPOS_MANUTENCAO, UNIDADES_TEMPO, UNIDADES_TEMPO_USO, infoUnidadeUso, formatarDataBR } from "@/lib/frota-constants";
 
 export default function VeiculoPlanos({ veiculoId, veiculo, odometroAtual }) {
   const [planos, setPlanos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editando, setEditando] = useState(null);
+
+  const info = infoUnidadeUso(veiculo);
+  const ehIdade = (veiculo?.unidade_tempo_uso || "km") === "idade_dias";
 
   async function carregar() {
     setLoading(true);
@@ -25,7 +28,7 @@ export default function VeiculoPlanos({ veiculoId, veiculo, odometroAtual }) {
 
   function descricaoRecorrencia(plano) {
     const partes = [];
-    if (plano.gatilho_km) partes.push(`a cada ${plano.gatilho_km.toLocaleString("pt-BR")} km`);
+    if (plano.gatilho_km) partes.push(`a cada ${plano.gatilho_km.toLocaleString("pt-BR")} ${info.label}`);
     if (plano.gatilho_tempo_valor && plano.gatilho_tempo_unidade) {
       partes.push(`a cada ${plano.gatilho_tempo_valor} ${UNIDADES_TEMPO[plano.gatilho_tempo_unidade] || plano.gatilho_tempo_unidade}`);
     }
@@ -40,7 +43,7 @@ export default function VeiculoPlanos({ veiculoId, veiculo, odometroAtual }) {
 
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
         <p className="text-xs text-blue-700">
-          💡 Os planos geram pendências automáticas no Kanban quando o veículo atinge o km ou o prazo definido.
+          💡 Os planos geram pendências automáticas no Kanban quando o veículo atinge o {info.label} ou o prazo definido.
         </p>
       </div>
 
@@ -68,20 +71,23 @@ export default function VeiculoPlanos({ veiculoId, veiculo, odometroAtual }) {
             <p className="text-xs text-primary font-medium mt-1">{descricaoRecorrencia(p)}</p>
             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1.5">
               {p.ultima_execucao_data && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Última: {formatarDataBR(p.ultima_execucao_data)}</span>}
-              {p.gatilho_km ? <span className="flex items-center gap-1"><Gauge className="w-3 h-3" /> Últ. km: {(p.ultima_execucao_odometro || 0).toLocaleString("pt-BR")}</span> : null}
+              {p.gatilho_km ? <span className="flex items-center gap-1"><Gauge className="w-3 h-3" /> Últ.: {(p.ultima_execucao_odometro || 0).toLocaleString("pt-BR")} {info.label}</span> : null}
             </div>
           </div>
         ))
       )}
 
       {editando && (
-        <FormPlano plano={editando} veiculoId={veiculoId} veiculoNome={veiculo?.nome || ""} odometroAtual={odometroAtual} onClose={() => setEditando(null)} onSalvo={() => { setEditando(null); carregar(); }} />
+        <FormPlano plano={editando} veiculoId={veiculoId} veiculo={veiculo} odometroAtual={odometroAtual} onClose={() => setEditando(null)} onSalvo={() => { setEditando(null); carregar(); }} />
       )}
     </div>
   );
 }
 
-function FormPlano({ plano, veiculoId, veiculoNome, odometroAtual, onClose, onSalvo }) {
+function FormPlano({ plano, veiculoId, veiculo, odometroAtual, onClose, onSalvo }) {
+  const info = infoUnidadeUso(veiculo);
+  const ehIdade = (veiculo?.unidade_tempo_uso || "km") === "idade_dias";
+
   const [form, setForm] = useState({
     titulo: plano.titulo || "",
     tipo_manutencao: plano.tipo_manutencao || "outro",
@@ -101,11 +107,11 @@ function FormPlano({ plano, veiculoId, veiculoNome, odometroAtual, onClose, onSa
     try {
       const dados = {
         veiculo_id: veiculoId,
-        veiculo_nome: veiculoNome,
+        veiculo_nome: veiculo?.nome || "",
         titulo: form.titulo.trim(),
         tipo_manutencao: form.tipo_manutencao,
         ativo: form.ativo,
-        gatilho_km: form.gatilho_km ? Number(form.gatilho_km) : null,
+        gatilho_km: !ehIdade && form.gatilho_km ? Number(form.gatilho_km) : null,
         gatilho_tempo_valor: form.gatilho_tempo_valor ? Number(form.gatilho_tempo_valor) : null,
         gatilho_tempo_unidade: form.gatilho_tempo_valor ? form.gatilho_tempo_unidade : null,
         ultima_execucao_odometro: form.ultima_execucao_odometro !== "" ? Number(form.ultima_execucao_odometro) : 0,
@@ -142,10 +148,16 @@ function FormPlano({ plano, veiculoId, veiculoNome, odometroAtual, onClose, onSa
 
           <div className="bg-muted/30 rounded-xl p-3 space-y-3">
             <p className="text-xs font-semibold text-muted-foreground">Recorrência (preencha um ou ambos)</p>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1"><Gauge className="w-3 h-3" /> A cada (km)</label>
-              <input type="number" value={form.gatilho_km} onChange={(e) => setForm({ ...form, gatilho_km: e.target.value })} placeholder="Ex: 10000" className="w-full border border-border rounded-xl px-3 py-2 text-sm mt-1 focus:border-primary outline-none" />
-            </div>
+            {ehIdade ? (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-2">
+                <p className="text-xs text-amber-700">Para ativos medidos por idade, use apenas a recorrência de tempo abaixo. A idade é calculada automaticamente.</p>
+              </div>
+            ) : (
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1"><Gauge className="w-3 h-3" /> A cada ({info.label})</label>
+                <input type="number" value={form.gatilho_km} onChange={(e) => setForm({ ...form, gatilho_km: e.target.value })} placeholder={`Ex: ${info.label === "km" ? "10000" : "250"}`} className="w-full border border-border rounded-xl px-3 py-2 text-sm mt-1 focus:border-primary outline-none" />
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-xs font-semibold text-muted-foreground">A cada</label>
@@ -160,19 +172,21 @@ function FormPlano({ plano, veiculoId, veiculoNome, odometroAtual, onClose, onSa
             </div>
           </div>
 
-          <div className="bg-muted/30 rounded-xl p-3 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground">Última execução (referência para o próximo gatilho)</p>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground">Data</label>
-                <input type="date" value={form.ultima_execucao_data} onChange={(e) => setForm({ ...form, ultima_execucao_data: e.target.value })} className="w-full border border-border rounded-xl px-3 py-2 text-sm mt-1 focus:border-primary outline-none" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground">Odômetro (km)</label>
-                <input type="number" value={form.ultima_execucao_odometro} onChange={(e) => setForm({ ...form, ultima_execucao_odometro: e.target.value })} placeholder={String(odometroAtual || 0)} className="w-full border border-border rounded-xl px-3 py-2 text-sm mt-1 focus:border-primary outline-none" />
+          {!ehIdade && (
+            <div className="bg-muted/30 rounded-xl p-3 space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground">Última execução (referência para o próximo gatilho)</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground">Data</label>
+                  <input type="date" value={form.ultima_execucao_data} onChange={(e) => setForm({ ...form, ultima_execucao_data: e.target.value })} className="w-full border border-border rounded-xl px-3 py-2 text-sm mt-1 focus:border-primary outline-none" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground">{info.campo} ({info.label})</label>
+                  <input type="number" value={form.ultima_execucao_odometro} onChange={(e) => setForm({ ...form, ultima_execucao_odometro: e.target.value })} placeholder={String(odometroAtual || 0)} className="w-full border border-border rounded-xl px-3 py-2 text-sm mt-1 focus:border-primary outline-none" />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div>
             <label className="text-xs font-semibold text-muted-foreground">Descrição</label>

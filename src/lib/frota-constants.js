@@ -49,9 +49,35 @@ export const TIPOS_VEICULO = {
   carro: "Carro",
   caminhonete: "Caminhonete",
   maquina: "Máquina",
+  instalacao: "Instalação",
   impressora: "Impressora",
   outro: "Outro"
 };
+
+export const UNIDADES_TEMPO_USO = {
+  km: { label: "km", titulo: "Quilometragem", campo: "Odômetro", pergunta: "Qual a quilometragem atual do painel?", passo: "Odômetro Atual" },
+  horas: { label: "h", titulo: "Horímetro", campo: "Horímetro", pergunta: "Qual a leitura do horímetro (horas)?", passo: "Horímetro Atual" },
+  ciclos: { label: "ciclos", titulo: "Ciclos", campo: "Contador de Ciclos", pergunta: "Qual a contagem de ciclos atual?", passo: "Contador Atual" },
+  idade_dias: { label: "dias", titulo: "Idade (dias)", campo: "Idade", pergunta: null, passo: null }
+};
+
+export function infoUnidadeUso(veiculo) {
+  return UNIDADES_TEMPO_USO[veiculo?.unidade_tempo_uso || "km"] || UNIDADES_TEMPO_USO.km;
+}
+
+export function tempoUsoAtual(veiculo) {
+  const unidade = veiculo?.unidade_tempo_uso || "km";
+  if (unidade === "idade_dias") {
+    if (!veiculo?.data_aquisicao) return 0;
+    return Math.max(0, Math.floor((Date.now() - new Date(veiculo.data_aquisicao).getTime()) / 86400000));
+  }
+  return veiculo?.odometro_atual || 0;
+}
+
+export function formatarTempoUso(veiculo) {
+  const info = infoUnidadeUso(veiculo);
+  return `${tempoUsoAtual(veiculo).toLocaleString("pt-BR")} ${info.label}`;
+}
 
 export const STATUS_VEICULO = {
   ativo: { label: "Ativo", cor: "bg-green-100 text-green-700" },

@@ -40,6 +40,8 @@ Deno.serve(async (req) => {
       renavam: origem.renavam || "",
       ano: origem.ano || null,
       modelo: origem.modelo || "",
+      unidade_tempo_uso: origem.unidade_tempo_uso || "km",
+      data_aquisicao: origem.data_aquisicao || "",
       odometro_atual: 0,
       odometro_proxima_revisao: origem.odometro_proxima_revisao || 10000,
       status: "ativo",

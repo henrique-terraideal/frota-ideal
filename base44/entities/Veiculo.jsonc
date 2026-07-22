@@ -13,6 +13,7 @@
         "carro",
         "caminhonete",
         "maquina",
+        "instalacao",
         "impressora",
         "outro"
       ],
@@ -35,14 +36,33 @@
       "type": "string",
       "title": "Modelo"
     },
+    "unidade_tempo_uso": {
+      "type": "string",
+      "enum": [
+        "km",
+        "horas",
+        "ciclos",
+        "idade_dias"
+      ],
+      "title": "Unidade de Tempo de Uso",
+      "description": "Como o tempo de uso deste ativo \u00e9 medido: km (od\u00f4metro), horas (hor\u00edmetro), ciclos (acionamentos) ou idade em dias.",
+      "default": "km"
+    },
+    "data_aquisicao": {
+      "type": "string",
+      "format": "date",
+      "title": "Data de Aquisi\u00e7\u00e3o / Comissionamento",
+      "description": "Usada para calcular a idade (em dias) quando a unidade de tempo de uso for idade_dias."
+    },
     "odometro_atual": {
       "type": "number",
-      "title": "Od\u00f4metro Atual (km)",
+      "title": "Tempo de Uso Atual",
+      "description": "Valor atual do medidor (km, horas ou ciclos). Ignorado quando a unidade for idade_dias.",
       "default": 0
     },
     "odometro_proxima_revisao": {
       "type": "number",
-      "title": "Pr\u00f3xima Revis\u00e3o (km)",
+      "title": "Pr\u00f3xima Revis\u00e3o (mesma unidade)",
       "default": 10000
     },
     "status": {

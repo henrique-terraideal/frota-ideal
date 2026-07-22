@@ -58,7 +58,12 @@ Deno.serve(async (req) => {
 
       // 2. Planos de manutenção preventiva (por km e/ou tempo)
       const planos = await base44.asServiceRole.entities.PlanoManutencao.filter({ veiculo_id: veiculo.id, ativo: true });
-      const odometroAtual = veiculo.odometro_atual || 0;
+      // "Tempo de uso" atual: km/horas/ciclos (odômetro) ou idade em dias (data_aquisicao)
+      let usoAtual = veiculo.odometro_atual || 0;
+      if ((veiculo.unidade_tempo_uso || "km") === "idade_dias" && veiculo.data_aquisicao) {
+        const diffMs = hoje.getTime() - new Date(veiculo.data_aquisicao).getTime();
+        usoAtual = Math.max(0, Math.floor(diffMs / 86400000));
+      }
 
       for (const plano of planos) {
         let deveGerar = false;
@@ -67,9 +72,9 @@ Deno.serve(async (req) => {
         // Gatilho por km
         if (plano.gatilho_km) {
           const ultimaKm = plano.ultima_execucao_odometro || 0;
-          if (odometroAtual >= ultimaKm + plano.gatilho_km) {
+          if (usoAtual >= ultimaKm + plano.gatilho_km) {
             deveGerar = true;
-            motivo = `Odômetro atual ${odometroAtual} km atingiu o gatilho de ${plano.gatilho_km} km (última execução em ${ultimaKm} km).`;
+            motivo = `Tempo de uso atual ${usoAtual} atingiu o gatilho de ${plano.gatilho_km} (última execução em ${ultimaKm}).`;
           }
         }
 
@@ -112,7 +117,7 @@ Deno.serve(async (req) => {
               status: "aberto",
               descricao: `${motivo}${plano.descricao ? ` ${plano.descricao}` : ""}`,
               referencia_id: plano.id,
-              prioridade: plano.gatilho_km && odometroAtual >= (plano.ultima_execucao_odometro || 0) + plano.gatilho_km ? "alta" : "media"
+              prioridade: plano.gatilho_km && usoAtual >= (plano.ultima_execucao_odometro || 0) + plano.gatilho_km ? "alta" : "media"
             });
             criadas.push(pend.titulo);
           }

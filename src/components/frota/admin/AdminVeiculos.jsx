@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Plus, Edit3, Trash2, X, Car, Check } from "lucide-react";
-import { TIPOS_VEICULO, STATUS_VEICULO } from "@/lib/frota-constants";
+import { TIPOS_VEICULO, STATUS_VEICULO, UNIDADES_TEMPO_USO, formatarTempoUso, infoUnidadeUso } from "@/lib/frota-constants";
 
 export default function AdminVeiculos() {
   const [veiculos, setVeiculos] = useState([]);
@@ -25,7 +25,7 @@ export default function AdminVeiculos() {
   return (
     <div className="space-y-3">
       <button onClick={() => setEditando({})} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white font-semibold text-sm">
-        <Plus className="w-4 h-4" /> Cadastrar Veículo
+        <Plus className="w-4 h-4" /> Cadastrar Veículo / Equipamento
       </button>
 
       {loading ? (
@@ -40,7 +40,7 @@ export default function AdminVeiculos() {
                 <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><Car className="w-4 h-4 text-primary" /></div>
                 <div className="min-w-0">
                   <p className="font-semibold text-sm truncate">{v.nome}</p>
-                  <p className="text-xs text-muted-foreground">{v.modelo || TIPOS_VEICULO[v.tipo]} • {(v.odometro_atual || 0).toLocaleString("pt-BR")} km</p>
+                  <p className="text-xs text-muted-foreground">{v.modelo || TIPOS_VEICULO[v.tipo]} • {formatarTempoUso(v)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
@@ -65,6 +65,8 @@ function FormVeiculo({ veiculo, onClose, onSalvo }) {
     renavam: veiculo.renavam || "",
     ano: veiculo.ano || "",
     modelo: veiculo.modelo || "",
+    unidade_tempo_uso: veiculo.unidade_tempo_uso || "km",
+    data_aquisicao: veiculo.data_aquisicao || "",
     odometro_atual: veiculo.odometro_atual || 0,
     odometro_proxima_revisao: veiculo.odometro_proxima_revisao || 10000,
     status: veiculo.status || "ativo",
@@ -74,14 +76,17 @@ function FormVeiculo({ veiculo, onClose, onSalvo }) {
   });
   const [salvando, setSalvando] = useState(false);
 
+  const ehIdade = form.unidade_tempo_uso === "idade_dias";
+  const info = UNIDADES_TEMPO_USO[form.unidade_tempo_uso];
+
   async function salvar() {
     setSalvando(true);
     try {
       const dados = {
         ...form,
         ano: form.ano ? parseInt(form.ano) : null,
-        odometro_atual: parseInt(form.odometro_atual) || 0,
-        odometro_proxima_revisao: parseInt(form.odometro_proxima_revisao) || 10000
+        odometro_atual: ehIdade ? 0 : (parseInt(form.odometro_atual) || 0),
+        odometro_proxima_revisao: ehIdade ? null : (parseInt(form.odometro_proxima_revisao) || 10000)
       };
       if (veiculo.id) {
         await base44.entities.Veiculo.update(veiculo.id, dados);
@@ -112,7 +117,7 @@ function FormVeiculo({ veiculo, onClose, onSalvo }) {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
       <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-lg">{veiculo.id ? "Editar Veículo" : "Cadastrar Veículo"}</h2>
+          <h2 className="font-bold text-lg">{veiculo.id ? "Editar Veículo" : "Cadastrar Veículo / Equipamento"}</h2>
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><X className="w-4 h-4" /></button>
         </div>
         <div className="space-y-3">
@@ -129,10 +134,29 @@ function FormVeiculo({ veiculo, onClose, onSalvo }) {
             {field("ano", "Ano", "number")}
             {selectField("status", "Status", STATUS_VEICULO)}
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            {field("odometro_atual", "Odômetro Atual (km)", "number")}
-            {field("odometro_proxima_revisao", "Próx. Revisão (km)", "number")}
+
+          {/* Tempo de Uso */}
+          <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 space-y-3">
+            <div>
+              <label className="text-xs font-semibold text-primary">Unidade de Tempo de Uso *</label>
+              <p className="text-[11px] text-muted-foreground mb-1">Como o uso deste ativo é medido para programar manutenções.</p>
+              <select value={form.unidade_tempo_uso} onChange={(e) => setForm({ ...form, unidade_tempo_uso: e.target.value })} className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none">
+                {Object.entries(UNIDADES_TEMPO_USO).map(([k, v]) => <option key={k} value={k}>{v.titulo}</option>)}
+              </select>
+            </div>
+            {field("data_aquisicao", "Data de Aquisição / Comissionamento", "date")}
+            {ehIdade ? (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-2">
+                <p className="text-xs text-amber-700">A idade em dias é calculada automaticamente a partir da data de aquisição. Não é necessário informar um medidor.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {field("odometro_atual", `${info.campo} Atual (${info.label})`, "number")}
+                {field("odometro_proxima_revisao", `Próx. Revisão (${info.label})`, "number")}
+              </div>
+            )}
           </div>
+
           <div className="grid grid-cols-2 gap-3">
             {field("data_licenciamento", "Venc. Licenciamento", "date")}
             {field("data_ipva", "Venc. IPVA", "date")}

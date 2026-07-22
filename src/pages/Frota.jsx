@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Car, ChevronLeft, Gauge, FileText, Wrench, Receipt, Calendar, Settings, Plus, Edit3, X, Check } from "lucide-react";
 import { useFrotaData, isGestorOuAdmin } from "@/hooks/useFrotaData";
-import { formatarDataBR, formatarDataHoraBR, STATUS_VEICULO, TIPOS_VEICULO, diasAteVencimento, formatarMoeda, STATUS_MULTA, STATUS_MANUTENCAO, TIPOS_MANUTENCAO } from "@/lib/frota-constants";
+import { formatarDataBR, formatarDataHoraBR, STATUS_VEICULO, TIPOS_VEICULO, diasAteVencimento, formatarMoeda, STATUS_MULTA, STATUS_MANUTENCAO, TIPOS_MANUTENCAO, UNIDADES_TEMPO_USO, tempoUsoAtual, infoUnidadeUso } from "@/lib/frota-constants";
 
 export default function Frota() {
   const { veiculos, loading } = useFrotaData();
@@ -45,6 +45,8 @@ function VeiculoCard({ veiculo }) {
   const navigate = useNavigate();
   const diasLic = diasAteVencimento(veiculo.data_licenciamento);
   const diasIpva = diasAteVencimento(veiculo.data_ipva);
+  const info = infoUnidadeUso(veiculo);
+  const ehIdade = veiculo.unidade_tempo_uso === "idade_dias";
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-border overflow-hidden">
@@ -61,15 +63,16 @@ function VeiculoCard({ veiculo }) {
       </div>
 
       <div className="p-4 space-y-3">
-        {/* Odômetro */}
+        {/* Tempo de Uso */}
         <div className="flex items-center justify-between bg-muted/50 rounded-xl p-3">
           <div className="flex items-center gap-2">
             <Gauge className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium">Odômetro</span>
+            <span className="text-sm font-medium">{info.campo}</span>
           </div>
           <div className="text-right">
-            <p className="text-lg font-bold tabular-nums">{(veiculo.odometro_atual || 0).toLocaleString("pt-BR")} km</p>
-            <p className="text-[10px] text-muted-foreground">Próx. revisão: {(veiculo.odometro_proxima_revisao || 10000).toLocaleString("pt-BR")} km</p>
+            <p className="text-lg font-bold tabular-nums">{tempoUsoAtual(veiculo).toLocaleString("pt-BR")} {info.label}</p>
+            {!ehIdade && <p className="text-[10px] text-muted-foreground">Próx. revisão: {(veiculo.odometro_proxima_revisao || 10000).toLocaleString("pt-BR")} {info.label}</p>}
+            {ehIdade && veiculo.data_aquisicao && <p className="text-[10px] text-muted-foreground">Desde {formatarDataBR(veiculo.data_aquisicao)}</p>}
           </div>
         </div>
 
