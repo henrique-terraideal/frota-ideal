@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Edit3, Trash2, X, Cpu, Check, Radio, Activity } from "lucide-react";
+import { Plus, Edit3, Trash2, X, Cpu, Check, Radio, Activity, QrCode, Printer } from "lucide-react";
 import { formatarDataHoraBR } from "@/lib/frota-constants";
 
 export default function AdminComputadoresDeBordo() {
@@ -8,6 +8,7 @@ export default function AdminComputadoresDeBordo() {
   const [veiculos, setVeiculos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editando, setEditando] = useState(null);
+  const [qrDispositivo, setQrDispositivo] = useState(null);
 
   async function carregar() {
     setLoading(true);
@@ -63,6 +64,7 @@ export default function AdminComputadoresDeBordo() {
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
+                <button onClick={() => setQrDispositivo(d)} className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center" title="Ver QR Code"><QrCode className="w-3.5 h-3.5 text-primary" /></button>
                 <button onClick={() => setEditando(d)} className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center"><Edit3 className="w-3.5 h-3.5 text-muted-foreground" /></button>
                 <button onClick={() => excluir(d.id)} className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center"><Trash2 className="w-3.5 h-3.5 text-red-500" /></button>
               </div>
@@ -83,6 +85,53 @@ export default function AdminComputadoresDeBordo() {
       )}
 
       {editando && <FormDispositivo dispositivo={editando} veiculos={veiculos} onClose={() => setEditando(null)} onSalvo={() => { setEditando(null); carregar(); }} />}
+      {qrDispositivo && <ModalQRCode dispositivo={qrDispositivo} onClose={() => setQrDispositivo(null)} />}
+    </div>
+  );
+}
+
+function ModalQRCode({ dispositivo, onClose }) {
+  const onboardingUrl = `${window.location.origin}/onboarding-bordo?device_id=${encodeURIComponent(dispositivo.device_id)}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(onboardingUrl)}`;
+
+  function imprimir() {
+    const win = window.open("", "_blank", "width=400,height=500");
+    win.document.write(`
+      <html><head><title>QR Code - ${dispositivo.device_id}</title></head>
+      <body style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;font-family:Arial,sans-serif;">
+        <img src="${qrUrl}" width="300" height="300" />
+        <h2 style="margin-top:16px;">${dispositivo.device_id}</h2>
+        <p style="color:#666;font-size:12px;">Computador de Bordo — Terra Ideal</p>
+      </body></html>
+    `);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); }, 500);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold text-lg">QR Code de Configuração</h2>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="flex flex-col items-center">
+          <div className="bg-white p-3 rounded-2xl border border-border">
+            <img src={qrUrl} alt="QR Code" width="240" height="240" className="rounded-lg" />
+          </div>
+          <p className="text-sm font-bold mt-3">{dispositivo.device_id}</p>
+          <p className="text-xs text-muted-foreground mt-1 text-center px-4">
+            Cole este QR code na parte traseira do dispositivo. O técnico escaneia com o celular para configurar o Wi-Fi.
+          </p>
+          <div className="w-full mt-3 bg-muted/30 rounded-lg p-2">
+            <p className="text-[10px] text-muted-foreground font-mono break-all">{onboardingUrl}</p>
+          </div>
+        </div>
+        <button onClick={imprimir} className="w-full mt-4 py-3.5 rounded-xl bg-primary text-white font-bold flex items-center justify-center gap-2">
+          <Printer className="w-4 h-4" /> Imprimir QR Code
+        </button>
+      </div>
     </div>
   );
 }

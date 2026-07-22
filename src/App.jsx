@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -17,10 +17,16 @@ import Frota from '@/pages/Frota';
 import VeiculoDetalhe from '@/pages/VeiculoDetalhe';
 import Admin from '@/pages/Admin';
 import Mais from '@/pages/Mais';
-// Add page imports here
+import OnboardingBordo from '@/pages/OnboardingBordo';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const location = useLocation();
+
+  // Rotas públicas (sem auth)
+  if (location.pathname.startsWith("/onboarding-bordo")) {
+    return <OnboardingBordo />;
+  }
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
