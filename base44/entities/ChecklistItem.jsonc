@@ -2,6 +2,11 @@
   "name": "ChecklistItem",
   "type": "object",
   "properties": {
+    "veiculo_id": {
+      "type": "string",
+      "title": "Ve\u00edculo",
+      "description": "Ve\u00edculo ao qual esta pergunta pertence"
+    },
     "pergunta": {
       "type": "string",
       "title": "Pergunta",
@@ -27,6 +32,7 @@
     }
   },
   "required": [
+    "veiculo_id",
     "pergunta"
   ]
 }

@@ -71,6 +71,12 @@
       "format": "date",
       "title": "Vencimento IPVA"
     },
+    "versao_checklist": {
+      "type": "number",
+      "title": "Vers\u00e3o do Checklist",
+      "description": "Incrementada automaticamente quando o checklist deste ve\u00edculo \u00e9 alterado",
+      "default": 1
+    },
     "notas": {
       "type": "string",
       "title": "Observa\u00e7\u00f5es"

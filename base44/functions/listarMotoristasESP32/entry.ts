@@ -7,13 +7,16 @@ Deno.serve(async (req) => {
 
     const motoristas = await base44.asServiceRole.entities.Motorista.filter({ ativo: true });
 
-    // Retorna apenas nome e codigo_bordo para o dispositivo
-    const lista = motoristas.map((m) => ({
-      nome: m.nome,
-      codigo_bordo: m.codigo_bordo || ""
-    }));
+    // Ordena por codigo_bordo e retorna no formato esperado pelo dispositivo
+    const lista = motoristas
+      .filter((m) => m.codigo_bordo)
+      .sort((a, b) => String(a.codigo_bordo).localeCompare(String(b.codigo_bordo), "pt-BR", { numeric: true }))
+      .map((m) => ({
+        codigo: m.codigo_bordo,
+        nome: m.nome
+      }));
 
-    return Response.json(lista);
+    return Response.json({ motoristas: lista });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

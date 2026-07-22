@@ -1,0 +1,47 @@
+{
+  "name": "ComputadorDeBordo",
+  "type": "object",
+  "properties": {
+    "device_id": {
+      "type": "string",
+      "title": "Device ID",
+      "description": "Identificador \u00fanico gravado no firmware. Ex: BORDO-001"
+    },
+    "veiculo_id": {
+      "type": "string",
+      "title": "Ve\u00edculo Vinculado"
+    },
+    "veiculo_nome": {
+      "type": "string",
+      "title": "Nome do Ve\u00edculo"
+    },
+    "nome": {
+      "type": "string",
+      "title": "Nome Descritivo",
+      "description": "Ex: Computador do Carro Terra Ideal"
+    },
+    "ativo": {
+      "type": "boolean",
+      "title": "Ativo",
+      "default": true
+    },
+    "ultimo_contato": {
+      "type": "string",
+      "format": "date-time",
+      "title": "\u00daltimo Contato"
+    },
+    "versao_checklist": {
+      "type": "number",
+      "title": "Vers\u00e3o do Checklist no Dispositivo",
+      "default": 0
+    },
+    "notas": {
+      "type": "string",
+      "title": "Observa\u00e7\u00f5es"
+    }
+  },
+  "required": [
+    "device_id",
+    "veiculo_id"
+  ]
+}

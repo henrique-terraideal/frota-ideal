@@ -1,15 +1,17 @@
 import React, { useState } from "react";
-import { Car, Users, ClipboardCheck, Cpu, ChevronRight } from "lucide-react";
+import { Car, Users, ClipboardCheck, Cpu, Monitor, Code, ChevronRight } from "lucide-react";
 import AdminVeiculos from "@/components/frota/admin/AdminVeiculos";
 import AdminMotoristas from "@/components/frota/admin/AdminMotoristas";
 import AdminChecklist from "@/components/frota/admin/AdminChecklist";
+import AdminComputadoresDeBordo from "@/components/frota/admin/AdminComputadoresDeBordo";
 import AdminEsp32 from "@/components/frota/admin/AdminEsp32";
 
 const TABS = [
   { id: "veiculos", label: "Veículos", icon: Car },
   { id: "motoristas", label: "Motoristas", icon: Users },
   { id: "checklist", label: "Checklist", icon: ClipboardCheck },
-  { id: "esp32", label: "Computador de Bordo", icon: Cpu }
+  { id: "dispositivos", label: "Dispositivos", icon: Monitor },
+  { id: "esp32", label: "Firmware IA", icon: Code }
 ];
 
 export default function Admin() {
@@ -44,6 +46,7 @@ export default function Admin() {
         {aba === "veiculos" && <AdminVeiculos />}
         {aba === "motoristas" && <AdminMotoristas />}
         {aba === "checklist" && <AdminChecklist />}
+        {aba === "dispositivos" && <AdminComputadoresDeBordo />}
         {aba === "esp32" && <AdminEsp32 />}
       </div>
     </div>
