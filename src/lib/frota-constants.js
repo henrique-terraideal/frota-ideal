@@ -86,6 +86,13 @@ export const PERMISSOES = {
   admin: "Administrador"
 };
 
+export const UNIDADES_TEMPO = {
+  dias: "dias",
+  semanas: "semanas",
+  meses: "meses",
+  anos: "anos"
+};
+
 export function formatarMoeda(valor) {
   if (valor == null) return "—";
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(valor);

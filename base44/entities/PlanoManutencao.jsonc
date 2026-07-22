@@ -1,0 +1,75 @@
+{
+  "name": "PlanoManutencao",
+  "type": "object",
+  "properties": {
+    "veiculo_id": {
+      "type": "string",
+      "title": "Ve\u00edculo"
+    },
+    "veiculo_nome": {
+      "type": "string",
+      "title": "Nome do Ve\u00edculo"
+    },
+    "titulo": {
+      "type": "string",
+      "title": "T\u00edtulo",
+      "description": "Ex: Troca de \u00f3leo do motor"
+    },
+    "tipo_manutencao": {
+      "type": "string",
+      "enum": [
+        "lavagem",
+        "revisao_concessionaria",
+        "calibragem",
+        "troca_oleo",
+        "corretiva",
+        "outro"
+      ],
+      "title": "Tipo de Manuten\u00e7\u00e3o",
+      "default": "outro"
+    },
+    "ativo": {
+      "type": "boolean",
+      "title": "Ativo",
+      "default": true
+    },
+    "gatilho_km": {
+      "type": "number",
+      "title": "A cada (km)",
+      "description": "Repetir a cada X quil\u00f4metros rodados. Deixe vazio se n\u00e3o for por km."
+    },
+    "gatilho_tempo_valor": {
+      "type": "number",
+      "title": "A cada (valor)",
+      "description": "Repetir a cada X unidades de tempo. Deixe vazio se n\u00e3o for por tempo."
+    },
+    "gatilho_tempo_unidade": {
+      "type": "string",
+      "enum": [
+        "dias",
+        "semanas",
+        "meses",
+        "anos"
+      ],
+      "title": "Unidade de tempo"
+    },
+    "ultima_execucao_odometro": {
+      "type": "number",
+      "title": "Od\u00f4metro da \u00faltima execu\u00e7\u00e3o",
+      "default": 0
+    },
+    "ultima_execucao_data": {
+      "type": "string",
+      "format": "date",
+      "title": "Data da \u00faltima execu\u00e7\u00e3o"
+    },
+    "descricao": {
+      "type": "string",
+      "title": "Descri\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "veiculo_id",
+    "titulo"
+  ]
+}

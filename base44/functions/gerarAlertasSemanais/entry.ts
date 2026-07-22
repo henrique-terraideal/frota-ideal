@@ -1,6 +1,17 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { formatarDataBR, diasAteVencimento } from "../../shared/frota-utils.ts";
 
+// Converte unidade de tempo em dias
+function unidadeParaDias(unidade) {
+  switch (unidade) {
+    case "dias": return 1;
+    case "semanas": return 7;
+    case "meses": return 30;
+    case "anos": return 365;
+    default: return 0;
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -16,6 +27,7 @@ Deno.serve(async (req) => {
 
     const veiculos = await base44.asServiceRole.entities.Veiculo.filter({ status: "ativo" });
     const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
     const diaSemana = hoje.getDay(); // 0 = domingo, 1 = segunda
     const criadas = [];
 
@@ -44,34 +56,66 @@ Deno.serve(async (req) => {
         }
       }
 
-      // 2. Revisão a cada 10.000 km
+      // 2. Planos de manutenção preventiva (por km e/ou tempo)
+      const planos = await base44.asServiceRole.entities.PlanoManutencao.filter({ veiculo_id: veiculo.id, ativo: true });
       const odometroAtual = veiculo.odometro_atual || 0;
-      const proximaRevisao = veiculo.odometro_proxima_revisao || 10000;
-      if (odometroAtual >= proximaRevisao) {
-        const revisoesAbertas = await base44.asServiceRole.entities.Pendencia.filter({
-          veiculo_id: veiculo.id,
-          tipo: "manutencao_programada",
-          status: "aberto"
-        });
-        const jaTemRevisao = revisoesAbertas.some((p) =>
-          p.titulo.toLowerCase().includes("revis") || p.descricao?.toLowerCase().includes("revis")
-        );
-        if (!jaTemRevisao) {
-          const pend = await base44.asServiceRole.entities.Pendencia.create({
-            titulo: `Revisão na concessionária — ${veiculo.nome}`,
-            tipo: "manutencao_programada",
+
+      for (const plano of planos) {
+        let deveGerar = false;
+        let motivo = "";
+
+        // Gatilho por km
+        if (plano.gatilho_km) {
+          const ultimaKm = plano.ultima_execucao_odometro || 0;
+          if (odometroAtual >= ultimaKm + plano.gatilho_km) {
+            deveGerar = true;
+            motivo = `Odômetro atual ${odometroAtual} km atingiu o gatilho de ${plano.gatilho_km} km (última execução em ${ultimaKm} km).`;
+          }
+        }
+
+        // Gatilho por tempo
+        if (!deveGerar && plano.gatilho_tempo_valor && plano.gatilho_tempo_unidade) {
+          const diasUnidade = unidadeParaDias(plano.gatilho_tempo_unidade);
+          const intervaloDias = plano.gatilho_tempo_valor * diasUnidade;
+          if (intervaloDias > 0) {
+            if (plano.ultima_execucao_data) {
+              const ultima = new Date(plano.ultima_execucao_data);
+              ultima.setHours(0, 0, 0, 0);
+              const proxima = new Date(ultima);
+              proxima.setDate(proxima.getDate() + intervaloDias);
+              if (hoje >= proxima) {
+                deveGerar = true;
+                motivo = `Prazo de ${plano.gatilho_tempo_valor} ${plano.gatilho_tempo_unidade} atingido (última execução em ${formatarDataBR(plano.ultima_execucao_data)}).`;
+              }
+            } else {
+              // Sem data de última execução — considera vencido
+              deveGerar = true;
+              motivo = `Plano sem registro de execução anterior. Realize a primeira execução e registre.`;
+            }
+          }
+        }
+
+        if (deveGerar) {
+          // Idempotência: não cria se já existe pendência aberta para este plano
+          const existentes = await base44.asServiceRole.entities.Pendencia.filter({
             veiculo_id: veiculo.id,
-            veiculo_nome: veiculo.nome,
-            status: "aberto",
-            descricao: `Odômetro atual: ${odometroAtual} km. Revisão programada aos ${proximaRevisao} km. Agendar revisão na concessionária.`,
-            prioridade: "alta"
+            tipo: "manutencao_programada",
+            status: "aberto"
           });
-          criadas.push(pend.titulo);
-          // Atualiza próxima revisão
-          const novaProxima = Math.ceil(odometroAtual / 10000) * 10000 + 10000;
-          await base44.asServiceRole.entities.Veiculo.update(veiculo.id, {
-            odometro_proxima_revisao: novaProxima
-          });
+          const jaExiste = existentes.some((p) => p.referencia_id === plano.id);
+          if (!jaExiste) {
+            const pend = await base44.asServiceRole.entities.Pendencia.create({
+              titulo: `${plano.titulo} — ${veiculo.nome}`,
+              tipo: "manutencao_programada",
+              veiculo_id: veiculo.id,
+              veiculo_nome: veiculo.nome,
+              status: "aberto",
+              descricao: `${motivo}${plano.descricao ? ` ${plano.descricao}` : ""}`,
+              referencia_id: plano.id,
+              prioridade: plano.gatilho_km && odometroAtual >= (plano.ultima_execucao_odometro || 0) + plano.gatilho_km ? "alta" : "media"
+            });
+            criadas.push(pend.titulo);
+          }
         }
       }
 
