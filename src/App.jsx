@@ -19,6 +19,10 @@ import Admin from '@/pages/Admin';
 import Mais from '@/pages/Mais';
 import OnboardingBordo from '@/pages/OnboardingBordo';
 import Perfil from '@/pages/Perfil';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -28,6 +32,12 @@ const AuthenticatedApp = () => {
   if (location.pathname.startsWith("/onboarding-bordo")) {
     return <OnboardingBordo />;
   }
+
+  // Páginas de autenticação (acessíveis sem login)
+  if (location.pathname === "/login") return <Login />;
+  if (location.pathname === "/register") return <Register />;
+  if (location.pathname === "/forgot-password") return <ForgotPassword />;
+  if (location.pathname === "/reset-password") return <ResetPassword />;
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {

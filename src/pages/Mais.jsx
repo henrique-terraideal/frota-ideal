@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useFrotaData } from "@/hooks/useFrotaData";
 import { isGestorOuAdmin } from "@/hooks/useFrotaData";
-import { ClipboardList, Car, Wrench, Settings, Receipt, ChevronRight, User, LogOut, UserCircle } from "lucide-react";
+import { ClipboardList, Car, Wrench, Settings, Receipt, ChevronRight, User, LogOut, LogIn, UserCircle } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 
 export default function Mais() {
@@ -50,15 +50,27 @@ export default function Mais() {
           );
         })}
 
-        <button onClick={() => logout()} className="w-full flex items-center gap-3 bg-white rounded-2xl shadow-sm border border-border p-4 mt-4 hover:shadow-md transition-shadow active:scale-[0.98]">
-          <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
-            <LogOut className="w-5 h-5 text-red-500" />
-          </div>
-          <div className="flex-1 text-left">
-            <p className="font-semibold text-sm text-red-600">Sair</p>
-            <p className="text-xs text-muted-foreground">Encerrar sessão</p>
-          </div>
-        </button>
+        {user ? (
+          <button onClick={() => logout()} className="w-full flex items-center gap-3 bg-white rounded-2xl shadow-sm border border-border p-4 mt-4 hover:shadow-md transition-shadow active:scale-[0.98]">
+            <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
+              <LogOut className="w-5 h-5 text-red-500" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-semibold text-sm text-red-600">Sair</p>
+              <p className="text-xs text-muted-foreground">Encerrar sessão</p>
+            </div>
+          </button>
+        ) : (
+          <Link to="/login" className="flex items-center gap-3 bg-primary text-white rounded-2xl shadow-sm p-4 mt-4 hover:shadow-md transition-shadow active:scale-[0.98]">
+            <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <LogIn className="w-5 h-5" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-semibold text-sm">Entrar</p>
+              <p className="text-xs text-white/70">Fazer login no app</p>
+            </div>
+          </Link>
+        )}
 
         <p className="text-center text-xs text-muted-foreground mt-6 pb-4">Gestão de Patrimônio • Terra Ideal v1.0</p>
       </div>
