@@ -81,6 +81,12 @@ function FormUsuario({ usuario, onClose, onSalvo }) {
     setSalvando(true);
     try {
       await base44.entities.User.update(usuario.id, form);
+      // Sincroniza imediatamente o Operador correspondente
+      try {
+        await base44.functions.invoke('sincronizarOperador', {
+          record: { id: usuario.id, email: usuario.email, ...form }
+        });
+      } catch (syncErr) { console.error("Sync Operador falhou:", syncErr); }
       onSalvo();
     } catch (e) { alert(e.message); } finally { setSalvando(false); }
   }

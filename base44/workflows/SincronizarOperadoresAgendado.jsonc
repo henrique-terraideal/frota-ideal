@@ -1,0 +1,44 @@
+{
+  "description": "A cada 15 minutos, reconcilia Users com codigo_bordo preenchido para a entidade Operador (rede de seguran\u00e7a para capturar mudan\u00e7as fora do app).",
+  "name": "Sincronizar Operadores (Agendado)",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 15,
+      "interval_unit": "minutes",
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "sincronizar_operadores_agendado",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "reconciliar": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "reconciliarOperadores"
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Reconciliar Operadores",
+            "description": "A cada 15 min"
+          }
+        }
+      }
+    ]
+  }
+}

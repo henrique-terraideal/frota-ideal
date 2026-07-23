@@ -45,6 +45,12 @@ export default function Perfil() {
         telefone,
         foto_url: fotoUrl
       });
+      // Best-effort: sincroniza o nome no Operador correspondente
+      if (user?.codigo_bordo) {
+        base44.functions.invoke('sincronizarOperador', {
+          record: { id: user.id, full_name: nome, email: user.email, role: user.role, codigo_bordo: user.codigo_bordo }
+        }).catch(() => {});
+      }
       setSalvo(true);
       setTimeout(() => setSalvo(false), 2500);
     } catch (e) { alert(e.message); } finally { setSalvando(false); }

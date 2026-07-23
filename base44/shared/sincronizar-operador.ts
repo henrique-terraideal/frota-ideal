@@ -33,3 +33,31 @@ export async function sincronizarOperadorUnico(base44, user) {
   });
   return { action: "created", operador_id: novoOperador.id };
 }
+
+// Reconcilia TODOS os Users que têm codigo_bordo para Operadores.
+// Usada pela reconciliação agendada e pelo backfill manual.
+// incluirDetalhes=true retorna a lista por usuário (uso restrito a admin).
+
+export async function reconciliarTodos(base44, incluirDetalhes = false) {
+  const users = await base44.asServiceRole.entities.User.list();
+  let criados = 0;
+  let atualizados = 0;
+  let skipados = 0;
+  const detalhes = [];
+
+  for (const u of users) {
+    if (!u.codigo_bordo) {
+      skipados++;
+      continue;
+    }
+    const r = await sincronizarOperadorUnico(base44, u);
+    if (r.action === "created") criados++;
+    else if (r.action === "updated") atualizados++;
+    if (incluirDetalhes) {
+      detalhes.push({ user_id: u.id, nome: u.full_name || u.email, ...r });
+    }
+  }
+
+  const res = { total: users.length, criados, atualizados, skipados };
+  return incluirDetalhes ? { ...res, detalhes } : res;
+}
