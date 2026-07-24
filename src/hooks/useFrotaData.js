@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 
 // Hook que carrega o usuário atual e a lista de ativos
@@ -26,12 +26,14 @@ export function useFrotaData() {
   }, []);
 
   // Compat: mantém "motorista" e "veiculos" como aliases para não quebrar componentes legados
-  const operador = user ? {
+  // useMemo: garante referência estável enquanto `user` não muda, evitando loops em
+  // useEffects de consumidores que dependem de [motorista].
+  const operador = useMemo(() => user ? {
     id: user.id,
     nome: user.full_name,
     permissao: user.role === "admin" ? "administrador" : "motorista",
     user_id: user.id
-  } : null;
+  } : null, [user]);
 
   return { user, motorista: operador, operador, veiculos: ativos, ativos, loading, setUser, setAtivos, setVeiculos: setAtivos };
 }
