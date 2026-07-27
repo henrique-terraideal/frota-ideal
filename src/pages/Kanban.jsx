@@ -79,7 +79,7 @@ export default function Kanban() {
 
   return (
     <div className="min-h-full">
-      <div className="bg-white border-b border-border px-5 pt-6 pb-3 sticky top-0 z-40">
+      <div className="bg-white border-b border-border px-5 lg:px-8 pt-6 pb-3 sticky top-0 z-40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -97,13 +97,13 @@ export default function Kanban() {
 
         {showFilters && (
           <div className="mt-3 space-y-2">
-            <div className="flex gap-2 overflow-x-auto pb-1">
+            <div className="flex gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible">
               <button onClick={() => setFiltroTipo(null)} className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${!filtroTipo ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>Todos os tipos</button>
               {tiposAtivos.map((t) => (
                 <button key={t} onClick={() => setFiltroTipo(filtroTipo === t ? null : t)} className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${filtroTipo === t ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>{TIPOS_PENDENCIA[t]?.label || t}</button>
               ))}
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-1">
+            <div className="flex gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible">
               <button onClick={() => setFiltroVeiculo(null)} className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${!filtroVeiculo ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>Todos os ativos</button>
               {veiculos.map((v) => (
                 <button key={v.id} onClick={() => setFiltroVeiculo(filtroVeiculo === v.id ? null : v.id)} className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${filtroVeiculo === v.id ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>{v.nome}</button>
@@ -119,13 +119,13 @@ export default function Kanban() {
         </div>
       ) : (
         <DragDropContext onDragEnd={onDragEnd}>
-          <div className="flex gap-3 px-4 py-4 overflow-x-auto" style={{ minHeight: "calc(100vh - 180px)" }}>
+          <div className="flex gap-4 px-4 lg:px-8 py-4 overflow-x-auto w-full max-w-[1600px] mx-auto" style={{ minHeight: "calc(100vh - 180px)" }}>
             {COLUNAS.map((col) => {
               const items = pendenciasFiltradas.filter((p) => p.status === col.id);
               return (
                 <Droppable droppableId={col.id} key={col.id}>
                   {(provided, snapshot) => (
-                    <div ref={provided.innerRef} {...provided.droppableProps} className="flex-shrink-0 w-72">
+                    <div ref={provided.innerRef} {...provided.droppableProps} className="flex-1 min-w-[18rem]">
                       <div className={`rounded-2xl border-2 p-2 ${col.cor} ${snapshot.isDraggingOver ? "ring-2 ring-primary" : ""}`}>
                         <div className="flex items-center justify-between px-2 py-1.5">
                           <h2 className="font-bold text-sm">{col.titulo}</h2>
@@ -148,6 +148,7 @@ export default function Kanban() {
                                   </div>
                                   <p className="text-sm font-semibold leading-tight">{p.titulo}</p>
                                   {p.ativo_nome && <p className="text-xs text-muted-foreground mt-1">{p.ativo_nome}</p>}
+                                  {p.descricao && <p className="text-xs text-muted-foreground/80 mt-1 line-clamp-2">{p.descricao}</p>}
                                   {p.responsavel_nome && (
                                     <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
                                       <User className="w-3 h-3" /> {p.responsavel_nome}
