@@ -23,13 +23,13 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-muted/30 flex flex-col">
-      <main className="flex-1 pb-20 max-w-md mx-auto w-full">
+      <main className="flex-1 pb-20 max-w-md lg:max-w-6xl mx-auto w-full">
         <Outlet />
       </main>
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-white shadow-lg">
-        <div className="max-w-md mx-auto flex items-center justify-around h-16 px-2">
+        <div className="max-w-md lg:max-w-6xl mx-auto flex items-center justify-around h-16 px-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
